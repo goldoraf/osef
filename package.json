@@ -1,0 +1,33 @@
+{
+  "name": "osef",
+  "version": "0.0.0",
+  "description": "",
+  "main": "Gruntfile.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-uglify": "~0.2.4",
+    "grunt-es6-module-transpiler": "~0.4.1",
+    "grunt-browserify": "~1.2.4",
+    "es6ify": "~0.4.1",
+    "grunt-contrib-copy": "~0.4.1",
+    "grunt-contrib-connect": "~0.4.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "grunt clean transpile && grunt browserify concat uglify"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/goldoraf/osef.git"
+  },
+  "author": "",
+  "license": "BSD",
+  "readmeFilename": "README.md",
+  "gitHead": "776ca6ae30c38458b60ce92ea86609462c8c839d"
+}
