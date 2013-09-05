@@ -9,6 +9,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-contrib-handlebars');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-karma');
     
     grunt.initConfig({
         clean: ['tmp', 'dist'],
@@ -123,6 +124,12 @@ module.exports = function(grunt) {
             }
         },
 
+        karma: {
+            unit: {
+                configFile: 'karma.conf.js'
+            }
+        },
+
         copy: {
             testapp_framework: {
                 files: [{
@@ -187,7 +194,12 @@ module.exports = function(grunt) {
         'transpile:tests',
         'browserify:tests'
     ]);
-
+    grunt.registerTask('setup_test_files', [
+        'build:test_support_code',
+        'handlebars:tests',
+        'copy:tests_framework',
+        'browserify:tests'
+    ]);
     grunt.registerTask('testapp', [
         'build:testapp',
         'handlebars:testapp',
@@ -195,12 +207,4 @@ module.exports = function(grunt) {
         'connect:testapp',
         'watch'
     ]);
-    grunt.registerTask('tests', [
-        'build:test_support_code',
-        'handlebars:tests',
-        'copy:tests_framework',
-        'browserify:tests',
-        'connect:tests'
-    ]);
-
 };

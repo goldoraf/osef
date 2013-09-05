@@ -18,10 +18,22 @@
     "grunt-contrib-copy": "~0.4.1",
     "grunt-contrib-connect": "~0.4.1",
     "grunt-contrib-handlebars": "~0.5.10",
-    "grunt-contrib-watch": "~0.5.3"
+    "grunt-contrib-watch": "~0.5.3",
+    "karma-script-launcher": "~0.1.0",
+    "karma-firefox-launcher": "~0.1.0",
+    "karma-chrome-launcher": "~0.1.0",
+    "karma-html2js-preprocessor": "~0.1.0",
+    "karma-jasmine": "~0.1.3",
+    "karma-requirejs": "~0.1.0",
+    "karma-coffee-preprocessor": "~0.1.0",
+    "karma-phantomjs-launcher": "~0.1.0",
+    "karma": "~0.10.2",
+    "mocha": "~1.12.1",
+    "karma-mocha": "~0.1.0",
+    "grunt-karma": "~0.6.2"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "grunt setup_test_files && grunt karma"
   },
   "repository": {
     "type": "git",
