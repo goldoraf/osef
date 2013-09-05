@@ -482,10 +482,147 @@ exports.ui = ui;
 },{"./ui":2}],2:[function(require,module,exports){
 "use strict";
 var View = require("./ui/view");
+var StateManager = require("./ui/state_manager");
+var ViewGroup = require("./ui/view_group");
+var Layout = require("./ui/layout");
 exports.View = View;
+exports.StateManager = StateManager;
+exports.ViewGroup = ViewGroup;
+exports.Layout = Layout;
 
 
-},{"./ui/view":3}],3:[function(require,module,exports){
+},{"./ui/layout":3,"./ui/state_manager":4,"./ui/view":5,"./ui/view_group":6}],3:[function(require,module,exports){
+"use strict";
+var $__superDescriptor = function(proto, name) {
+  if (!proto) throw new TypeError('super is null');
+  return Object.getPropertyDescriptor(proto, name);
+}, $__superCall = function(self, proto, name, args) {
+  var descriptor = $__superDescriptor(proto, name);
+  if (descriptor) {
+    if ('value'in descriptor) return descriptor.value.apply(self, args);
+    if (descriptor.get) return descriptor.get.call(self).apply(self, args);
+  }
+  throw new TypeError("Object has no method '" + name + "'.");
+}, $__getProtoParent = function(superClass) {
+  if (typeof superClass === 'function') {
+    var prototype = superClass.prototype;
+    if (Object(prototype) === prototype || prototype === null) return superClass.prototype;
+  }
+  if (superClass === null) return null;
+  throw new TypeError();
+}, $__getDescriptors = function(object) {
+  var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
+  for (var i = 0; i < names.length; i++) {
+    var name = names[i];
+    descriptors[name] = Object.getOwnPropertyDescriptor(object, name);
+  }
+  return descriptors;
+}, $__createClass = function(object, staticObject, protoParent, superClass, hasConstructor) {
+  var ctor = object.constructor;
+  if (typeof superClass === 'function') ctor.__proto__ = superClass;
+  if (!hasConstructor && protoParent === null) ctor = object.constructor = function() {};
+  var descriptors = $__getDescriptors(object);
+  descriptors.constructor.enumerable = false;
+  ctor.prototype = Object.create(protoParent, descriptors);
+  Object.defineProperties(ctor, $__getDescriptors(staticObject));
+  return ctor;
+};
+var View = require("./view");
+var ViewGroup = require("./view_group");
+var Layout = function($__super) {
+  'use strict';
+  var $__proto = $__getProtoParent($__super);
+  var $Layout = ($__createClass)({
+    constructor: function() {
+      $__superCall(this, $__proto, "constructor", []);
+      this.zones = [];
+    },
+    render: function() {
+      $__superCall(this, $__proto, "render", []);
+      this.append();
+      for (var name in this.zones) {
+        this[name] = new ViewGroup(this.zones[name]);
+      }
+      return this;
+    }
+  }, {}, $__proto, $__super, true);
+  return $Layout;
+}(View);
+module.exports = Layout;
+
+
+},{"./view":5,"./view_group":6}],4:[function(require,module,exports){
+"use strict";
+var $__getDescriptors = function(object) {
+  var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
+  for (var i = 0; i < names.length; i++) {
+    var name = names[i];
+    descriptors[name] = Object.getOwnPropertyDescriptor(object, name);
+  }
+  return descriptors;
+}, $__createClassNoExtends = function(object, staticObject) {
+  var ctor = object.constructor;
+  Object.defineProperty(object, 'constructor', {enumerable: false});
+  ctor.prototype = object;
+  Object.defineProperties(ctor, $__getDescriptors(staticObject));
+  return ctor;
+};
+var StateManager = function() {
+  'use strict';
+  var $StateManager = ($__createClassNoExtends)({
+    constructor: function() {
+      this.states = [];
+      this.default = null;
+    },
+    addState: function(path, cb) {
+      var params = [];
+      path = path.replace(/(\?)?\{([^}]+)\}/g, function(match, optional, param) {
+        params.push({
+          name: param,
+          optional: (optional == '?') ? true: false
+        });
+        return '([\\w-]+)?';
+      });
+      this.states.push({
+        regex: new RegExp(path),
+        params: params,
+        cb: cb
+      });
+    },
+    defaultTo: function(state) {
+      this.default = this.findState(state);
+    },
+    run: function() {
+      this.transitionTo(location.hash);
+      window.addEventListener("hashchange", this.hashChanged.bind(this), false);
+    },
+    hashChanged: function(event) {
+      this.transitionTo(location.hash);
+    },
+    transitionTo: function(hash) {
+      var state = (hash == '') ? this.default: this.findState(hash);
+      var params = {}, matched = hash.match(state.regex);
+      for (var i in state.params) {
+        var param = state.params[i];
+        params[param.name] = matched[parseInt(i) + 1];
+      }
+      state.cb(params);
+    },
+    findState: function(hash) {
+      for (var k in this.states) {
+        var state = this.states[k], matched = hash.match(state.regex);
+        if (matched) {
+          return state;
+        }
+      }
+    }
+  }, {});
+  return $StateManager;
+}();
+module.exports = StateManager;
+
+
+},{}],5:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -565,6 +702,134 @@ var View = function() {
   return $View;
 }();
 module.exports = View;
+
+
+},{}],6:[function(require,module,exports){
+"use strict";
+var $__getDescriptors = function(object) {
+  var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
+  for (var i = 0; i < names.length; i++) {
+    var name = names[i];
+    descriptors[name] = Object.getOwnPropertyDescriptor(object, name);
+  }
+  return descriptors;
+}, $__createClassNoExtends = function(object, staticObject) {
+  var ctor = object.constructor;
+  Object.defineProperty(object, 'constructor', {enumerable: false});
+  ctor.prototype = object;
+  Object.defineProperties(ctor, $__getDescriptors(staticObject));
+  return ctor;
+};
+var ViewGroup = function() {
+  'use strict';
+  var $ViewGroup = ($__createClassNoExtends)({
+    constructor: function(containerSelector) {
+      this.container = this.getContainer(containerSelector);
+      this.views = [];
+      this.layoutTransition = new LayoutTransition();
+    },
+    show: function(view) {
+      var that = this;
+      return this.removeAllViews().then(function() {
+        return that.addView(view);
+      });
+    },
+    addView: function(view) {
+      this.views.push(view);
+      view.render().appendTo(this.container);
+      return this.layoutTransition.addChild(this.container, view.element);
+    },
+    removeAllViews: function() {
+      var promises = [];
+      this.views.forEach(function(view, index) {
+        promises.push(this.removeView(view, index));
+      }, this);
+      if (promises.length === 0) return when.resolve();
+      return when.all(promises);
+    },
+    removeView: function(view, index) {
+      if (index === undefined) {}
+      this.views.splice(index, 1);
+      return this.layoutTransition.removeChild(this.container, view.element).then(function() {
+        view.remove();
+      });
+    },
+    getContainer: function(containerSelector) {
+      var container = document.querySelector(containerSelector);
+      if (container === null) {
+        throw new Error("Container " + containerSelector + " not found in the DOM");
+      }
+      return container;
+    }
+  }, {});
+  return $ViewGroup;
+}();
+var LayoutTransition = function() {
+  'use strict';
+  var $LayoutTransition = ($__createClassNoExtends)({
+    constructor: function() {
+      this.animator = new AnimationManager();
+      this.transitions = {
+        'CHANGE_APPEARING': 'fadeIn',
+        'CHANGE_DISAPPEARING': 'fadeOut',
+        'CHANGING': 'pulse',
+        'APPEARING': 'fadeIn',
+        'DISAPPEARING': 'fadeOut'
+      };
+    },
+    addChild: function(parentElt, elt) {
+      return this.animator.animate(elt, this.transitions['APPEARING']);
+    },
+    removeChild: function(parentElt, elt) {
+      return this.animator.animate(elt, this.transitions['DISAPPEARING']);
+    }
+  }, {});
+  return $LayoutTransition;
+}();
+var AnimationManager = function() {
+  'use strict';
+  var $AnimationManager = ($__createClassNoExtends)({
+    constructor: function() {
+      this.animations = {
+        'animation': ['animationend', 'transitionend'],
+        'OAnimation': ['oAnimationEnd', 'oTransitionEnd'],
+        'MozAnimation': ['animationend', 'transitionend'],
+        'WebkitAnimation': ['webkitAnimationEnd', 'webkitTransitionEnd']
+      };
+    },
+    animate: function(el, type) {
+      var deferred = this.registerEndEvent(el, type);
+      el.className += ' animated ' + type;
+      return deferred.promise;
+    },
+    registerEndEvent: function(el, type) {
+      var deferred = when.defer(), eventNames = this.getEventNames(el);
+      if (!eventNames) {
+        deferred.resolve(el);
+      } else {
+        var handler = function(e) {
+          var animType = e.animationName || e.propertyName;
+          if (animType && animType == type) {
+            deferred.resolve(e.currentTarget);
+          }
+        };
+        el.addEventListener(eventNames[0], handler);
+        el.addEventListener(eventNames[1], handler);
+      }
+      return deferred;
+    },
+    getEventNames: function(el) {
+      var a;
+      for (a in this.animations) {
+        if (el.style[a] !== undefined) {
+          return this.animations[a];
+        }
+      }
+    }
+  }, {});
+  return $AnimationManager;
+}();
+module.exports = ViewGroup;
 
 
 },{}]},{},[1])(1)

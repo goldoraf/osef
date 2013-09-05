@@ -115,7 +115,7 @@ module.exports = function(grunt) {
     });
 
     grunt.registerTask('build:framework', ['clean', 'transpile:framework', 'browserify:framework', 'concat:framework', 'uglify:framework']);
-    grunt.registerTask('build:testapp', ['clean', 'transpile:app', 'browserify:app']);
+    grunt.registerTask('build:testapp', ['transpile:app', 'browserify:app']);
 
     grunt.registerTask('testapp', ['build:testapp', 'handlebars:compile', 'copy:framework', 'connect:testapp']);
 };

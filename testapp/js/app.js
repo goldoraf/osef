@@ -35,7 +35,7 @@ var $__superDescriptor = function(proto, name) {
   Object.defineProperties(ctor, $__getDescriptors(staticObject));
   return ctor;
 };
-var View = Osef.ui.View;
+var $__1 = Osef.ui, View = $__1.View, StateManager = $__1.StateManager, Layout = $__1.Layout;
 var TestView = function($__super) {
   'use strict';
   var $__proto = $__getProtoParent($__super);
@@ -45,8 +45,23 @@ var TestView = function($__super) {
     }}, {}, $__proto, $__super, true);
   return $TestView;
 }(View);
-var view = new TestView();
-view.render().append();
+var AppLayout = function($__super) {
+  'use strict';
+  var $__proto = $__getProtoParent($__super);
+  var $AppLayout = ($__createClass)({constructor: function() {
+      $__superCall(this, $__proto, "constructor", []);
+      this.templateName = 'layout';
+      this.zones = {
+        launchbar: '#launchbar',
+        main: '#main',
+        footer: '#footer'
+      };
+    }}, {}, $__proto, $__super, true);
+  return $AppLayout;
+}(Layout);
+var stateManager = new StateManager(), layout = new AppLayout();
+layout.render();
+layout.launchbar.addView(new TestView());
 
 
 },{}]},{},[1])(1)
