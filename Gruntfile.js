@@ -95,5 +95,8 @@ module.exports = function(grunt) {
         }
     });
 
+    // FIXME: there is no grunt task for building the framework because of https://github.com/thlorenz/es6ify/issues/3.
+    // The transpilation must be done in 2 grunt passes because of this bug, so you must run 'npm run-script build'
+
     grunt.registerTask('testapp', ['handlebars:compile', 'copy:js', 'connect:testapp']);
 };
