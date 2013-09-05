@@ -8,6 +8,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-contrib-handlebars');
+    grunt.loadNpmTasks('grunt-contrib-watch');
     
     grunt.initConfig({
         clean: ['tmp', 'dist'],
@@ -107,9 +108,19 @@ module.exports = function(grunt) {
                 options: {
                     port: 8020,
                     base: 'testapp',
-                    hostname: null,
-                    keepalive: true
+                    hostname: null
                 }
+            }
+        },
+
+        watch: {
+            testapp_code: {
+                files: ['testapp/src/**/*.js'],
+                tasks: ['build:testapp']
+            },
+            testapp_templates: {
+                files: ['testapp/src/templates/**/*.hbs'],
+                tasks: ['handlebars:compile']
             }
         }
     });
@@ -117,5 +128,5 @@ module.exports = function(grunt) {
     grunt.registerTask('build:framework', ['clean', 'transpile:framework', 'browserify:framework', 'concat:framework', 'uglify:framework']);
     grunt.registerTask('build:testapp', ['transpile:app', 'browserify:app']);
 
-    grunt.registerTask('testapp', ['build:testapp', 'handlebars:compile', 'copy:framework', 'connect:testapp']);
+    grunt.registerTask('testapp', ['build:testapp', 'handlebars:compile', 'copy:framework', 'connect:testapp', 'watch']);
 };
