@@ -1,3 +1,4 @@
 import ui from './ui';
+import domain from './domain';
 
-export { ui }; 
+export { ui, domain }; 

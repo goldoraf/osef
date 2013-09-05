@@ -475,11 +475,95 @@
 (function(e){if("function"==typeof bootstrap)bootstrap("osef",e);else if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else if("undefined"!=typeof ses){if(!ses.ok())return;ses.makeOsef=e}else"undefined"!=typeof window?window.Osef=e():global.Osef=e()})(function(){var define,ses,bootstrap,module,exports;
 return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 "use strict";
+var Aggregate = require("./domain/aggregate");
+exports.Aggregate = Aggregate;
+
+
+},{"./domain/aggregate":2}],2:[function(require,module,exports){
+"use strict";
+var $__getDescriptors = function(object) {
+  var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
+  for (var i = 0; i < names.length; i++) {
+    var name = names[i];
+    descriptors[name] = Object.getOwnPropertyDescriptor(object, name);
+  }
+  return descriptors;
+}, $__createClassNoExtends = function(object, staticObject) {
+  var ctor = object.constructor;
+  Object.defineProperty(object, 'constructor', {enumerable: false});
+  ctor.prototype = object;
+  Object.defineProperties(ctor, $__getDescriptors(staticObject));
+  return ctor;
+};
+var Aggregate = function() {
+  'use strict';
+  var $Aggregate = ($__createClassNoExtends)({
+    constructor: function(identifier) {
+      if (identifier === undefined) {
+        this.identifier = generateUUID();
+      }
+      this.version = 0;
+      this.uncommittedEvents = [];
+    },
+    snapshot: function() {
+      throw new Error("Not implemented");
+    },
+    toEvent: function(name, data) {
+      var event = {
+        event: name,
+        type: 'domain',
+        payload: data || {}
+      };
+      if (!event.payload.id) {
+        event.payload.id = this.identifier;
+      }
+      return event;
+    },
+    loadFromHistory: function(events) {
+      events.forEach(function(e) {
+        if (e.type == 'snapshot') {
+          this.applySnapshot(e);
+        } else {
+          this.applyEvent(e);
+        }
+      }, this);
+    },
+    applySnapshot: function(event) {
+      throw new Error("Not implemented");
+    },
+    applyEvent: function(event) {
+      this[event.event](event.payload);
+      if (event.head && this.version < event.head.revision) {
+        this.version = event.head.revision;
+      } else {
+        event.head = {revision: ++this.version};
+        this.uncommittedEvents.push(event);
+      }
+    },
+    getType: function() {
+      throw new Error("You must implement the getType() method of aggregates for now");
+    }
+  }, {});
+  return $Aggregate;
+}();
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r: (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+module.exports = Aggregate;
+
+
+},{}],3:[function(require,module,exports){
+"use strict";
 var ui = require("./ui");
+var domain = require("./domain");
 exports.ui = ui;
+exports.domain = domain;
 
 
-},{"./ui":2}],2:[function(require,module,exports){
+},{"./domain":1,"./ui":4}],4:[function(require,module,exports){
 "use strict";
 var View = require("./ui/view");
 var StateManager = require("./ui/state_manager");
@@ -491,7 +575,7 @@ exports.ViewGroup = ViewGroup;
 exports.Layout = Layout;
 
 
-},{"./ui/layout":3,"./ui/state_manager":4,"./ui/view":5,"./ui/view_group":6}],3:[function(require,module,exports){
+},{"./ui/layout":5,"./ui/state_manager":6,"./ui/view":7,"./ui/view_group":8}],5:[function(require,module,exports){
 "use strict";
 var $__superDescriptor = function(proto, name) {
   if (!proto) throw new TypeError('super is null');
@@ -551,7 +635,7 @@ var Layout = function($__super) {
 module.exports = Layout;
 
 
-},{"./view":5,"./view_group":6}],4:[function(require,module,exports){
+},{"./view":7,"./view_group":8}],6:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -622,7 +706,7 @@ var StateManager = function() {
 module.exports = StateManager;
 
 
-},{}],5:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -704,7 +788,7 @@ var View = function() {
 module.exports = View;
 
 
-},{}],6:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -832,6 +916,6 @@ var AnimationManager = function() {
 module.exports = ViewGroup;
 
 
-},{}]},{},[1])(1)
+},{}]},{},[3])(3)
 });
 ;

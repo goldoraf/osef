@@ -17,7 +17,7 @@ describe('ViewGroup tests', function() {
         var group = new Osef.ui.ViewGroup('#container');
         group.addView(new Tests.TestView())
              .then(function() {
-                  chai.assert.equal('Test', document.body.querySelector('#container h1').innerHTML);
+                  chai.assert.equal(document.body.querySelector('#container h1').innerHTML, 'Test');
              });
     });
 });
