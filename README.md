@@ -1,4 +1,4 @@
-OSEF.js - the JS framework that everyone doesn't care ;)
+OSEF.js - the JS framework that everyone doesn't care of ;)
 =========================================================
 
 *Please note that this a work-in-progress, and things are currently in pre-alpha mode.*
@@ -20,3 +20,4 @@ The goal of this project is to create a framework based on [Event Sourcing](http
 4. To run tests using Karma:
 
         npm test
+
