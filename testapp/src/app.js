@@ -1,24 +1,8 @@
 
-const { View, StateManager, Layout } = Osef.ui;
+const { StateManager } = Osef.ui;
 
-class TestView extends View {
-    constructor(context) {
-        super(context);
-        this.templateName = 'test';
-    }
-}
-
-class AppLayout extends Layout {
-    constructor() {
-        super();
-        this.templateName = 'layout';
-        this.zones = {
-            launchbar: '#launchbar',
-            main: '#main',
-            footer: '#footer'
-        };
-    }
-}
+import TestView from './views/test';
+import AppLayout from './views/layout';
 
 var stateManager = new StateManager(),
     layout = new AppLayout();
