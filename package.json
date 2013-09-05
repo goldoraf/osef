@@ -16,7 +16,8 @@
     "grunt-browserify": "~1.2.4",
     "es6ify": "~0.4.1",
     "grunt-contrib-copy": "~0.4.1",
-    "grunt-contrib-connect": "~0.4.1"
+    "grunt-contrib-connect": "~0.4.1",
+    "grunt-contrib-handlebars": "~0.5.10"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

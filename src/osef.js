@@ -1,3 +1,3 @@
-import { ui } from './ui';
+import View from './view';
 
-export { ui }; 
+export { View }; 

@@ -7,6 +7,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-connect');
+    grunt.loadNpmTasks('grunt-contrib-handlebars');
     
     grunt.initConfig({
         clean: ['tmp', 'dist'],
@@ -31,7 +32,7 @@ module.exports = function(grunt) {
                     transform: [function(file) {
                         return require('es6ify')(file);
                     }],
-                    //standalone: 'Osef'
+                    standalone: 'Osef'
                 }
             }
         },
@@ -61,7 +62,8 @@ module.exports = function(grunt) {
                 options: {
                     namespace: "JST",
                     processName: function(filePath) {
-                        return filePath.replace(/testapp\/src\/templates\//, '');
+                        return filePath.replace(/testapp\/src\/templates\//, '')
+                                       .replace(/\.hbs/, '');
                     }
                 },
                 files: {
@@ -93,5 +95,5 @@ module.exports = function(grunt) {
         }
     });
 
-    grunt.registerTask('testapp', ['copy:js', 'connect:testapp']);
+    grunt.registerTask('testapp', ['handlebars:compile', 'copy:js', 'connect:testapp']);
 };
