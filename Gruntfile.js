@@ -9,7 +9,6 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-contrib-handlebars');
     grunt.loadNpmTasks('grunt-contrib-watch');
-    grunt.loadNpmTasks('grunt-mocha');
     
     grunt.initConfig({
         clean: ['tmp', 'dist'],
@@ -31,6 +30,15 @@ module.exports = function(grunt) {
                     cwd: 'testapp/src/',
                     src: ['**/*.js'],
                     dest: 'tmp/testapp/transpiled/'
+                }]
+            },
+            tests: {
+                type: 'cjs',
+                files: [{
+                    expand: true,
+                    cwd: 'test/src/support/',
+                    src: ['**/*.js'],
+                    dest: 'tmp/test/transpiled/'
                 }]
             }
         },
@@ -54,6 +62,16 @@ module.exports = function(grunt) {
                         return require('es6ify')(file);
                     }],
                     standalone: 'Testapp'
+                }
+            },
+            tests: {
+                src: 'tmp/test/transpiled/index.js',
+                dest: 'test/js/support.js',
+                options: {
+                    transform: [function(file) {
+                        return require('es6ify')(file);
+                    }],
+                    standalone: 'Tests'
                 }
             }
         },
@@ -79,7 +97,7 @@ module.exports = function(grunt) {
         },
 
         handlebars: {
-            compile: {
+            testapp: {
                 options: {
                     namespace: "JST",
                     processName: function(filePath) {
@@ -89,6 +107,18 @@ module.exports = function(grunt) {
                 },
                 files: {
                     'testapp/js/templates.js': ['testapp/src/templates/**/*.hbs']
+                }
+            },
+            tests: {
+                options: {
+                    namespace: "JST",
+                    processName: function(filePath) {
+                        return filePath.replace(/test\/src\/templates\//, '')
+                                       .replace(/\.hbs/, '');
+                    }
+                },
+                files: {
+                    'test/js/templates.js': ['test/src/templates/**/*.hbs']
                 }
             }
         },
@@ -112,18 +142,6 @@ module.exports = function(grunt) {
             }
         },
 
-        mocha: {
-            all: {
-                src: ['test/index.html'],
-                options: {
-                    // Pipe output console.log from your JS to grunt. False by default.
-                    log: true,
-                    reporter: 'Nyan',
-                    run: true
-                }
-            }
-        },
-
         connect: {
             testapp: {
                 options: {
@@ -132,7 +150,7 @@ module.exports = function(grunt) {
                     hostname: null
                 }
             },
-            unittests: {
+            tests: {
                 options: {
                     port: 8020,
                     base: 'test',
@@ -165,22 +183,24 @@ module.exports = function(grunt) {
         'transpile:app',
         'browserify:app'
     ]);
-    grunt.registerTask('test', [
-        'build:framework',
-        'copy:tests_framework',
-        'mocha'
+    grunt.registerTask('build:test_support_code', [
+        'transpile:tests',
+        'browserify:tests'
     ]);
 
     grunt.registerTask('testapp', [
         'build:testapp',
-        'handlebars:compile',
+        'handlebars:testapp',
         'copy:testapp_framework',
         'connect:testapp',
         'watch'
     ]);
-    grunt.registerTask('unittests', [
+    grunt.registerTask('tests', [
+        'build:test_support_code',
+        'handlebars:tests',
         'copy:tests_framework',
-        'connect:unittests'
+        'browserify:tests',
+        'connect:tests'
     ]);
 
 };
