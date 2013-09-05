@@ -20,8 +20,7 @@
     "grunt-contrib-handlebars": "~0.5.10"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "grunt clean transpile && grunt browserify concat uglify"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",

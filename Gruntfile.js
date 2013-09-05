@@ -19,20 +19,39 @@ module.exports = function(grunt) {
                     expand: true,
                     cwd: 'src/',
                     src: ['**/*.js'],
-                    dest: 'tmp/transpiled/'
+                    dest: 'tmp/framework/transpiled/'
+                }]
+            },
+            app: {
+                type: 'cjs',
+                files: [{
+                    expand: true,
+                    cwd: 'testapp/src/',
+                    src: ['**/*.js'],
+                    dest: 'tmp/testapp/transpiled/'
                 }]
             }
         },
 
         browserify: {
             framework: {
-                src: 'tmp/transpiled/osef.js',
+                src: 'tmp/framework/transpiled/osef.js',
                 dest: 'dist/osef.es5.js',
                 options: {
                     transform: [function(file) {
                         return require('es6ify')(file);
                     }],
                     standalone: 'Osef'
+                }
+            },
+            app: {
+                src: 'tmp/testapp/transpiled/app.js',
+                dest: 'testapp/js/app.js',
+                options: {
+                    transform: [function(file) {
+                        return require('es6ify')(file);
+                    }],
+                    standalone: 'Testapp'
                 }
             }
         },
@@ -73,7 +92,7 @@ module.exports = function(grunt) {
         },
 
         copy: {
-            js: {
+            framework: {
                 files: [{
                     expand: true,
                     flatten: true,
@@ -95,8 +114,8 @@ module.exports = function(grunt) {
         }
     });
 
-    // FIXME: there is no grunt task for building the framework because of https://github.com/thlorenz/es6ify/issues/3.
-    // The transpilation must be done in 2 grunt passes because of this bug, so you must run 'npm run-script build'
+    grunt.registerTask('build:framework', ['clean', 'transpile:framework', 'browserify:framework', 'concat:framework', 'uglify:framework']);
+    grunt.registerTask('build:testapp', ['clean', 'transpile:app', 'browserify:app']);
 
-    grunt.registerTask('testapp', ['handlebars:compile', 'copy:js', 'connect:testapp']);
+    grunt.registerTask('testapp', ['build:testapp', 'handlebars:compile', 'copy:framework', 'connect:testapp']);
 };

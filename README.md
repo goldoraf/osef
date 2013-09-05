@@ -9,7 +9,7 @@ OSEF.js - the JS framework that everyone doesn't care ;)
 
 2. To build the framework code:
 
-        npm run-script build
+        grunt build:framework
 
 3. To build & launch the test application:
 
