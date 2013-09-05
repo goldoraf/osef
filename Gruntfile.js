@@ -9,6 +9,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-contrib-handlebars');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-mocha');
     
     grunt.initConfig({
         clean: ['tmp', 'dist'],
@@ -93,13 +94,33 @@ module.exports = function(grunt) {
         },
 
         copy: {
-            framework: {
+            testapp_framework: {
                 files: [{
                     expand: true,
                     flatten: true,
                     src: ['dist/osef.js'],
                     dest: 'testapp/js/'
                 }]
+            },
+            tests_framework: {
+                files: [{
+                    expand: true,
+                    flatten: true,
+                    src: ['dist/osef.js'],
+                    dest: 'test/js/lib/'
+                }]
+            }
+        },
+
+        mocha: {
+            all: {
+                src: ['test/index.html'],
+                options: {
+                    // Pipe output console.log from your JS to grunt. False by default.
+                    log: true,
+                    reporter: 'Nyan',
+                    run: true
+                }
             }
         },
 
@@ -109,6 +130,14 @@ module.exports = function(grunt) {
                     port: 8020,
                     base: 'testapp',
                     hostname: null
+                }
+            },
+            unittests: {
+                options: {
+                    port: 8020,
+                    base: 'test',
+                    hostname: null,
+                    keepalive: true
                 }
             }
         },
@@ -125,8 +154,33 @@ module.exports = function(grunt) {
         }
     });
 
-    grunt.registerTask('build:framework', ['clean', 'transpile:framework', 'browserify:framework', 'concat:framework', 'uglify:framework']);
-    grunt.registerTask('build:testapp', ['transpile:app', 'browserify:app']);
+    grunt.registerTask('build:framework', [
+        'clean',
+        'transpile:framework',
+        'browserify:framework',
+        'concat:framework',
+        'uglify:framework'
+    ]);
+    grunt.registerTask('build:testapp', [
+        'transpile:app',
+        'browserify:app'
+    ]);
+    grunt.registerTask('test', [
+        'build:framework',
+        'copy:tests_framework',
+        'mocha'
+    ]);
 
-    grunt.registerTask('testapp', ['build:testapp', 'handlebars:compile', 'copy:framework', 'connect:testapp', 'watch']);
+    grunt.registerTask('testapp', [
+        'build:testapp',
+        'handlebars:compile',
+        'copy:testapp_framework',
+        'connect:testapp',
+        'watch'
+    ]);
+    grunt.registerTask('unittests', [
+        'copy:tests_framework',
+        'connect:unittests'
+    ]);
+
 };

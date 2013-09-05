@@ -1,0 +1,29 @@
+<!DOCTYPE>
+<html>
+<head>
+    <!--<script type="text/javascript" src="js/lib/sinon.js"></script>-->
+    <script type="text/javascript" src="js/lib/chai-1.7.2.js"></script>
+    <script type="text/javascript" src="js/lib/mocha-1.2.1.js"></script>
+    
+    <script type="text/javascript">
+    mocha.setup('bdd');
+    </script>
+    <link rel="stylesheet" href="css/mocha-1.2.1.css"></script>-->
+
+    <script type="text/javascript" src="js/lib/osef.js"></script>
+</head>
+</html>
+<body>
+    <div id="mocha"></div>
+    <!-- Include the actual tests. -->
+    <script type="text/javascript" src="js/view_test.js"></script>
+
+    <script type="text/javascript">
+    if (!window.PHANTOMJS) {
+        // Don't run if PHANTOMJS.
+        mocha.run();
+    }
+    </script>
+
+</body>
+</html>
