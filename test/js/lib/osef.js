@@ -476,10 +476,12 @@
 return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 "use strict";
 var Aggregate = require("./domain/aggregate");
+var EventBus = require("./domain/event_bus").EventBus;
 exports.Aggregate = Aggregate;
+exports.EventBus = EventBus;
 
 
-},{"./domain/aggregate":2}],2:[function(require,module,exports){
+},{"./domain/aggregate":2,"./domain/event_bus":3}],2:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -557,13 +559,44 @@ module.exports = Aggregate;
 
 },{}],3:[function(require,module,exports){
 "use strict";
+function CustomEvent(event, params) {
+  params = params || {
+    bubbles: false,
+    cancelable: false,
+    detail: undefined
+  };
+  var evt = document.createEvent('CustomEvent');
+  evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
+  return evt;
+}
+;
+CustomEvent.prototype = window.CustomEvent.prototype;
+window.CustomEvent = CustomEvent;
+var EventBus = {
+  subscribe: function(stream, fn) {
+    console.log('subscribe !', stream, fn);
+    document.addEventListener(stream, function(e) {
+      fn(e.detail);
+    });
+  },
+  publish: function(stream, event) {
+    console.log('publish !', stream, event);
+    var customEvent = new CustomEvent(stream, {detail: event});
+    document.dispatchEvent(customEvent);
+  }
+};
+exports.EventBus = EventBus;
+
+
+},{}],4:[function(require,module,exports){
+"use strict";
 var ui = require("./ui");
 var domain = require("./domain");
 exports.ui = ui;
 exports.domain = domain;
 
 
-},{"./domain":1,"./ui":4}],4:[function(require,module,exports){
+},{"./domain":1,"./ui":5}],5:[function(require,module,exports){
 "use strict";
 var View = require("./ui/view");
 var StateManager = require("./ui/state_manager");
@@ -575,7 +608,7 @@ exports.ViewGroup = ViewGroup;
 exports.Layout = Layout;
 
 
-},{"./ui/layout":5,"./ui/state_manager":6,"./ui/view":7,"./ui/view_group":8}],5:[function(require,module,exports){
+},{"./ui/layout":6,"./ui/state_manager":7,"./ui/view":8,"./ui/view_group":9}],6:[function(require,module,exports){
 "use strict";
 var $__superDescriptor = function(proto, name) {
   if (!proto) throw new TypeError('super is null');
@@ -635,7 +668,7 @@ var Layout = function($__super) {
 module.exports = Layout;
 
 
-},{"./view":7,"./view_group":8}],6:[function(require,module,exports){
+},{"./view":8,"./view_group":9}],7:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -706,7 +739,7 @@ var StateManager = function() {
 module.exports = StateManager;
 
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -788,7 +821,7 @@ var View = function() {
 module.exports = View;
 
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -916,6 +949,6 @@ var AnimationManager = function() {
 module.exports = ViewGroup;
 
 
-},{}]},{},[3])(3)
+},{}]},{},[4])(4)
 });
 ;
