@@ -175,6 +175,10 @@ module.exports = function(grunt) {
             testapp_templates: {
                 files: ['testapp/src/templates/**/*.hbs'],
                 tasks: ['handlebars:compile']
+            },
+            framework_code: {
+                files: ['src/**/*.js'],
+                tasks: ['build:framework', 'copy:tests_framework', 'copy:testapp_framework']
             }
         }
     });

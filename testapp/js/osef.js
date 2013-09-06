@@ -475,11 +475,252 @@
 (function(e){if("function"==typeof bootstrap)bootstrap("osef",e);else if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else if("undefined"!=typeof ses){if(!ses.ok())return;ses.makeOsef=e}else"undefined"!=typeof window?window.Osef=e():global.Osef=e()})(function(){var define,ses,bootstrap,module,exports;
 return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 "use strict";
+var Aggregate = require("./domain/aggregate");
+var EventBus = require("./domain/event_bus").EventBus;
+exports.Aggregate = Aggregate;
+exports.EventBus = EventBus;
+
+
+},{"./domain/aggregate":2,"./domain/event_bus":3}],2:[function(require,module,exports){
+"use strict";
+var $__getDescriptors = function(object) {
+  var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
+  for (var i = 0; i < names.length; i++) {
+    var name = names[i];
+    descriptors[name] = Object.getOwnPropertyDescriptor(object, name);
+  }
+  return descriptors;
+}, $__createClassNoExtends = function(object, staticObject) {
+  var ctor = object.constructor;
+  Object.defineProperty(object, 'constructor', {enumerable: false});
+  ctor.prototype = object;
+  Object.defineProperties(ctor, $__getDescriptors(staticObject));
+  return ctor;
+};
+var Aggregate = function() {
+  'use strict';
+  var $Aggregate = ($__createClassNoExtends)({
+    constructor: function(identifier) {
+      if (identifier === undefined) {
+        this.identifier = generateUUID();
+      }
+      this.version = 0;
+      this.uncommittedEvents = [];
+    },
+    snapshot: function() {
+      throw new Error("Not implemented");
+    },
+    toEvent: function(name, data) {
+      var event = {
+        event: name,
+        type: 'domain',
+        payload: data || {}
+      };
+      if (!event.payload.id) {
+        event.payload.id = this.identifier;
+      }
+      return event;
+    },
+    loadFromHistory: function(events) {
+      events.forEach(function(e) {
+        if (e.type == 'snapshot') {
+          this.applySnapshot(e);
+        } else {
+          this.applyEvent(e);
+        }
+      }, this);
+    },
+    applySnapshot: function(event) {
+      throw new Error("Not implemented");
+    },
+    applyEvent: function(event) {
+      this[event.event](event.payload);
+      if (event.head && this.version < event.head.revision) {
+        this.version = event.head.revision;
+      } else {
+        event.head = {revision: ++this.version};
+        this.uncommittedEvents.push(event);
+      }
+    },
+    getType: function() {
+      throw new Error("You must implement the getType() method of aggregates for now");
+    }
+  }, {});
+  return $Aggregate;
+}();
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r: (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+module.exports = Aggregate;
+
+
+},{}],3:[function(require,module,exports){
+"use strict";
+function CustomEvent(event, params) {
+  params = params || {
+    bubbles: false,
+    cancelable: false,
+    detail: undefined
+  };
+  var evt = document.createEvent('CustomEvent');
+  evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
+  return evt;
+}
+;
+CustomEvent.prototype = window.CustomEvent.prototype;
+window.CustomEvent = CustomEvent;
+var EventBus = {
+  subscribe: function(stream, fn) {
+    document.addEventListener(stream, function(e) {
+      fn(e.detail);
+    });
+  },
+  publish: function(stream, event) {
+    var customEvent = new CustomEvent(stream, {detail: event});
+    document.dispatchEvent(customEvent);
+  }
+};
+exports.EventBus = EventBus;
+
+
+},{}],4:[function(require,module,exports){
+"use strict";
 var ui = require("./ui");
+var domain = require("./domain");
+var storage = require("./storage");
 exports.ui = ui;
+exports.domain = domain;
+exports.storage = storage;
 
 
-},{"./ui":2}],2:[function(require,module,exports){
+},{"./domain":1,"./storage":5,"./ui":9}],5:[function(require,module,exports){
+"use strict";
+var __dependency1__ = require("./storage/db");
+var Db = __dependency1__.Db;
+var LocalstorageDb = __dependency1__.LocalstorageDb;
+exports.Db = Db;
+exports.LocalstorageDb = LocalstorageDb;
+
+
+},{"./storage/db":8}],6:[function(require,module,exports){
+"use strict";
+var $__getDescriptors = function(object) {
+  var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
+  for (var i = 0; i < names.length; i++) {
+    var name = names[i];
+    descriptors[name] = Object.getOwnPropertyDescriptor(object, name);
+  }
+  return descriptors;
+}, $__createClassNoExtends = function(object, staticObject) {
+  var ctor = object.constructor;
+  Object.defineProperty(object, 'constructor', {enumerable: false});
+  ctor.prototype = object;
+  Object.defineProperties(ctor, $__getDescriptors(staticObject));
+  return ctor;
+};
+var AbstractDb = function() {
+  'use strict';
+  var $AbstractDb = ($__createClassNoExtends)({
+    constructor: function(namespace) {
+      this.namespace = namespace;
+    },
+    put: function(key, value) {
+      throw new Error('Not implemented');
+    },
+    get: function(key) {
+      throw new Error('Not implemented');
+    },
+    del: function(key) {
+      throw new Error('Not implemented');
+    },
+    exists: function(key) {
+      throw new Error('Not implemented');
+    }
+  }, {});
+  return $AbstractDb;
+}();
+module.exports = AbstractDb;
+
+
+},{}],7:[function(require,module,exports){
+"use strict";
+var $__superDescriptor = function(proto, name) {
+  if (!proto) throw new TypeError('super is null');
+  return Object.getPropertyDescriptor(proto, name);
+}, $__superCall = function(self, proto, name, args) {
+  var descriptor = $__superDescriptor(proto, name);
+  if (descriptor) {
+    if ('value'in descriptor) return descriptor.value.apply(self, args);
+    if (descriptor.get) return descriptor.get.call(self).apply(self, args);
+  }
+  throw new TypeError("Object has no method '" + name + "'.");
+}, $__getProtoParent = function(superClass) {
+  if (typeof superClass === 'function') {
+    var prototype = superClass.prototype;
+    if (Object(prototype) === prototype || prototype === null) return superClass.prototype;
+  }
+  if (superClass === null) return null;
+  throw new TypeError();
+}, $__getDescriptors = function(object) {
+  var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
+  for (var i = 0; i < names.length; i++) {
+    var name = names[i];
+    descriptors[name] = Object.getOwnPropertyDescriptor(object, name);
+  }
+  return descriptors;
+}, $__createClass = function(object, staticObject, protoParent, superClass, hasConstructor) {
+  var ctor = object.constructor;
+  if (typeof superClass === 'function') ctor.__proto__ = superClass;
+  if (!hasConstructor && protoParent === null) ctor = object.constructor = function() {};
+  var descriptors = $__getDescriptors(object);
+  descriptors.constructor.enumerable = false;
+  ctor.prototype = Object.create(protoParent, descriptors);
+  Object.defineProperties(ctor, $__getDescriptors(staticObject));
+  return ctor;
+};
+var AbstractDb = require("./abstract_db");
+var LocalstorageDb = function($__super) {
+  'use strict';
+  var $__proto = $__getProtoParent($__super);
+  var $LocalstorageDb = ($__createClass)({
+    constructor: function() {
+      $__superCall(this, $__proto, "constructor", arguments);
+    },
+    put: function(key, value) {
+      localStorage.setItem(this.prefix(key), JSON.stringify(value));
+    },
+    get: function(key) {
+      return JSON.parse(localStorage.getItem(this.prefix(key)));
+    },
+    exists: function(key) {
+      return localStorage.getItem(this.prefix(key)) !== null;
+    },
+    del: function(key) {
+      return localStorage.removeItem(this.prefix(key));
+    },
+    prefix: function(key) {
+      return this.namespace === null ? key: this.namespace + ':' + key;
+    }
+  }, {}, $__proto, $__super, false);
+  return $LocalstorageDb;
+}(AbstractDb);
+module.exports = LocalstorageDb;
+
+
+},{"./abstract_db":6}],8:[function(require,module,exports){
+"use strict";
+var LocalstorageDb = require("./adapters/localstorage_db");
+var Db = {open: function(namespace) {
+    return new LocalstorageDb(namespace);
+  }};
+exports.Db = Db;
+exports.LocalstorageDb = LocalstorageDb;
+
+
+},{"./adapters/localstorage_db":7}],9:[function(require,module,exports){
 "use strict";
 var View = require("./ui/view");
 var StateManager = require("./ui/state_manager");
@@ -491,7 +732,7 @@ exports.ViewGroup = ViewGroup;
 exports.Layout = Layout;
 
 
-},{"./ui/layout":3,"./ui/state_manager":4,"./ui/view":5,"./ui/view_group":6}],3:[function(require,module,exports){
+},{"./ui/layout":10,"./ui/state_manager":11,"./ui/view":12,"./ui/view_group":13}],10:[function(require,module,exports){
 "use strict";
 var $__superDescriptor = function(proto, name) {
   if (!proto) throw new TypeError('super is null');
@@ -551,7 +792,7 @@ var Layout = function($__super) {
 module.exports = Layout;
 
 
-},{"./view":5,"./view_group":6}],4:[function(require,module,exports){
+},{"./view":12,"./view_group":13}],11:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -622,7 +863,7 @@ var StateManager = function() {
 module.exports = StateManager;
 
 
-},{}],5:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -704,7 +945,7 @@ var View = function() {
 module.exports = View;
 
 
-},{}],6:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -832,6 +1073,6 @@ var AnimationManager = function() {
 module.exports = ViewGroup;
 
 
-},{}]},{},[1])(1)
+},{}]},{},[4])(4)
 });
 ;

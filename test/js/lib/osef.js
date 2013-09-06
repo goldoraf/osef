@@ -574,13 +574,11 @@ CustomEvent.prototype = window.CustomEvent.prototype;
 window.CustomEvent = CustomEvent;
 var EventBus = {
   subscribe: function(stream, fn) {
-    console.log('subscribe !', stream, fn);
     document.addEventListener(stream, function(e) {
       fn(e.detail);
     });
   },
   publish: function(stream, event) {
-    console.log('publish !', stream, event);
     var customEvent = new CustomEvent(stream, {detail: event});
     document.dispatchEvent(customEvent);
   }
@@ -592,11 +590,137 @@ exports.EventBus = EventBus;
 "use strict";
 var ui = require("./ui");
 var domain = require("./domain");
+var storage = require("./storage");
 exports.ui = ui;
 exports.domain = domain;
+exports.storage = storage;
 
 
-},{"./domain":1,"./ui":5}],5:[function(require,module,exports){
+},{"./domain":1,"./storage":5,"./ui":9}],5:[function(require,module,exports){
+"use strict";
+var __dependency1__ = require("./storage/db");
+var Db = __dependency1__.Db;
+var LocalstorageDb = __dependency1__.LocalstorageDb;
+exports.Db = Db;
+exports.LocalstorageDb = LocalstorageDb;
+
+
+},{"./storage/db":8}],6:[function(require,module,exports){
+"use strict";
+var $__getDescriptors = function(object) {
+  var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
+  for (var i = 0; i < names.length; i++) {
+    var name = names[i];
+    descriptors[name] = Object.getOwnPropertyDescriptor(object, name);
+  }
+  return descriptors;
+}, $__createClassNoExtends = function(object, staticObject) {
+  var ctor = object.constructor;
+  Object.defineProperty(object, 'constructor', {enumerable: false});
+  ctor.prototype = object;
+  Object.defineProperties(ctor, $__getDescriptors(staticObject));
+  return ctor;
+};
+var AbstractDb = function() {
+  'use strict';
+  var $AbstractDb = ($__createClassNoExtends)({
+    constructor: function(namespace) {
+      this.namespace = namespace;
+    },
+    put: function(key, value) {
+      throw new Error('Not implemented');
+    },
+    get: function(key) {
+      throw new Error('Not implemented');
+    },
+    del: function(key) {
+      throw new Error('Not implemented');
+    },
+    exists: function(key) {
+      throw new Error('Not implemented');
+    }
+  }, {});
+  return $AbstractDb;
+}();
+module.exports = AbstractDb;
+
+
+},{}],7:[function(require,module,exports){
+"use strict";
+var $__superDescriptor = function(proto, name) {
+  if (!proto) throw new TypeError('super is null');
+  return Object.getPropertyDescriptor(proto, name);
+}, $__superCall = function(self, proto, name, args) {
+  var descriptor = $__superDescriptor(proto, name);
+  if (descriptor) {
+    if ('value'in descriptor) return descriptor.value.apply(self, args);
+    if (descriptor.get) return descriptor.get.call(self).apply(self, args);
+  }
+  throw new TypeError("Object has no method '" + name + "'.");
+}, $__getProtoParent = function(superClass) {
+  if (typeof superClass === 'function') {
+    var prototype = superClass.prototype;
+    if (Object(prototype) === prototype || prototype === null) return superClass.prototype;
+  }
+  if (superClass === null) return null;
+  throw new TypeError();
+}, $__getDescriptors = function(object) {
+  var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
+  for (var i = 0; i < names.length; i++) {
+    var name = names[i];
+    descriptors[name] = Object.getOwnPropertyDescriptor(object, name);
+  }
+  return descriptors;
+}, $__createClass = function(object, staticObject, protoParent, superClass, hasConstructor) {
+  var ctor = object.constructor;
+  if (typeof superClass === 'function') ctor.__proto__ = superClass;
+  if (!hasConstructor && protoParent === null) ctor = object.constructor = function() {};
+  var descriptors = $__getDescriptors(object);
+  descriptors.constructor.enumerable = false;
+  ctor.prototype = Object.create(protoParent, descriptors);
+  Object.defineProperties(ctor, $__getDescriptors(staticObject));
+  return ctor;
+};
+var AbstractDb = require("./abstract_db");
+var LocalstorageDb = function($__super) {
+  'use strict';
+  var $__proto = $__getProtoParent($__super);
+  var $LocalstorageDb = ($__createClass)({
+    constructor: function() {
+      $__superCall(this, $__proto, "constructor", arguments);
+    },
+    put: function(key, value) {
+      localStorage.setItem(this.prefix(key), JSON.stringify(value));
+    },
+    get: function(key) {
+      return JSON.parse(localStorage.getItem(this.prefix(key)));
+    },
+    exists: function(key) {
+      return localStorage.getItem(this.prefix(key)) !== null;
+    },
+    del: function(key) {
+      return localStorage.removeItem(this.prefix(key));
+    },
+    prefix: function(key) {
+      return this.namespace === null ? key: this.namespace + ':' + key;
+    }
+  }, {}, $__proto, $__super, false);
+  return $LocalstorageDb;
+}(AbstractDb);
+module.exports = LocalstorageDb;
+
+
+},{"./abstract_db":6}],8:[function(require,module,exports){
+"use strict";
+var LocalstorageDb = require("./adapters/localstorage_db");
+var Db = {open: function(namespace) {
+    return new LocalstorageDb(namespace);
+  }};
+exports.Db = Db;
+exports.LocalstorageDb = LocalstorageDb;
+
+
+},{"./adapters/localstorage_db":7}],9:[function(require,module,exports){
 "use strict";
 var View = require("./ui/view");
 var StateManager = require("./ui/state_manager");
@@ -608,7 +732,7 @@ exports.ViewGroup = ViewGroup;
 exports.Layout = Layout;
 
 
-},{"./ui/layout":6,"./ui/state_manager":7,"./ui/view":8,"./ui/view_group":9}],6:[function(require,module,exports){
+},{"./ui/layout":10,"./ui/state_manager":11,"./ui/view":12,"./ui/view_group":13}],10:[function(require,module,exports){
 "use strict";
 var $__superDescriptor = function(proto, name) {
   if (!proto) throw new TypeError('super is null');
@@ -668,7 +792,7 @@ var Layout = function($__super) {
 module.exports = Layout;
 
 
-},{"./view":8,"./view_group":9}],7:[function(require,module,exports){
+},{"./view":12,"./view_group":13}],11:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -739,7 +863,7 @@ var StateManager = function() {
 module.exports = StateManager;
 
 
-},{}],8:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -821,7 +945,7 @@ var View = function() {
 module.exports = View;
 
 
-},{}],9:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
