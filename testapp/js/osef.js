@@ -638,6 +638,19 @@ var AbstractDb = function() {
     },
     exists: function(key) {
       throw new Error('Not implemented');
+    },
+    serialize: function(value) {
+      return JSON.stringify(value);
+    },
+    deserialize: function(value) {
+      if (typeof value != 'string') {
+        return undefined;
+      }
+      try {
+        return JSON.parse(value);
+      } catch (e) {
+        return value || undefined;
+      }
     }
   }, {});
   return $AbstractDb;
@@ -690,16 +703,17 @@ var LocalstorageDb = function($__super) {
       $__superCall(this, $__proto, "constructor", arguments);
     },
     put: function(key, value) {
-      localStorage.setItem(this.prefix(key), JSON.stringify(value));
+      localStorage.setItem(this.prefix(key), this.serialize(value));
+      return when.resolve(value);
     },
     get: function(key) {
-      return JSON.parse(localStorage.getItem(this.prefix(key)));
+      return when.resolve(this.deserialize(localStorage.getItem(this.prefix(key))));
     },
     exists: function(key) {
-      return localStorage.getItem(this.prefix(key)) !== null;
+      return when.resolve(localStorage.getItem(this.prefix(key)) !== null);
     },
     del: function(key) {
-      return localStorage.removeItem(this.prefix(key));
+      return when.resolve(localStorage.removeItem(this.prefix(key)));
     },
     prefix: function(key) {
       return this.namespace === null ? key: this.namespace + ':' + key;

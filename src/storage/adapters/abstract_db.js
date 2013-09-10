@@ -18,6 +18,21 @@ class AbstractDb {
     exists(key) {
         throw new Error('Not implemented');
     }
+
+    serialize(value) {
+        return JSON.stringify(value);
+    }
+
+    deserialize(value) {
+        if (typeof value != 'string') { 
+            return undefined;
+        }
+        try { 
+            return JSON.parse(value);
+        } catch(e) { 
+            return value || undefined;
+        }
+    }
 }
 
 export default AbstractDb;

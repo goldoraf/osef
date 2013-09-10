@@ -1,29 +1,86 @@
-describe('LocalstorageDb tests', function() {
-    var db = new Osef.storage.LocalstorageDb('test');
+describe('Db', function() {
+    
+    var assert = chai.assert;
+        assert.promise = function(obj) {
+            return this.ok(obj.hasOwnProperty('then'));
+        };
 
-    beforeEach(function() {
-        localStorage.clear();
-    });
+    [/*'indexeddb', */'Localstorage'].forEach(function(adapter) {
+        var klass = adapter + 'Db',
+            db = new Osef.storage[klass]('test');
+        
+        beforeEach(function() {
+            if (adapter == 'Localstorage') {
+                localStorage.clear();
+            }
+        });
 
-    it('should save a key\'s value', function() {
-        db.put('foo', 'bar');
-        chai.assert.equal(JSON.parse(localStorage.getItem('test:foo')), 'bar');
-    });
+        describe(adapter + 'Db', function() {
 
-    it('should fetch a value', function() {
-        db.put('foo', 'bar');
-        chai.assert.equal(db.get('foo'), 'bar');
-    });
+            describe('put', function() {
+                it('returns a promise', function() {
+                    assert.promise(db.put('foo', 'bar'));
+                });
 
-    it('should know if a key exists', function() {
-        chai.assert.notOk(db.exists('foo'));
-        db.put('foo', 'bar');
-        chai.assert.ok(db.exists('foo'));
-    });
+                it('sets a value in the db', function(done) {
+                    db.put('foo', 'bar')
+                      .then(function() {
+                          db.get('foo')
+                            .then(function(value) {
+                                assert.equal(value, 'bar');
+                                done();
+                            });
+                      });
+                });
+            });
 
-    it('should delete a key', function() {
-        db.put('foo', 'bar');
-        db.del('foo');
-        chai.assert.notOk(db.exists('foo'));
+            describe('get', function() {
+                it('returns a promise', function() {
+                    assert.promise(db.get('foo'));
+                });
+            });
+
+            describe('exists', function() {
+                it('returns a promise', function() {
+                    assert.promise(db.exists('foo'));
+                });
+
+                it('returns false if a key doesn\'t exist', function(done) {
+                    db.exists('foo')
+                      .then(function(value) {
+                          assert.equal(value, false);
+                          done();
+                      });
+                });
+
+                it('returns true if a key exists', function(done) {
+                    db.put('foo', 'bar')
+                      .then(function() {
+                          db.exists('foo')
+                            .then(function(value) {
+                                assert.equal(value, true);
+                                done();
+                            });
+                      });
+                });
+            });
+
+            describe('del', function() {
+                it('returns a promise', function() {
+                    assert.promise(db.del('foo'));
+                });
+
+                it('deletes a key when it exists', function(done) {
+                    db.put('foo', 'bar')
+                      .then(function() {
+                          db.del('foo')
+                            .then(function() {
+                                assert.ok(true);
+                                done();
+                            });
+                      });
+                });
+            });
+        });
     });
 });

@@ -2,19 +2,20 @@ import AbstractDb from './abstract_db';
 
 class LocalstorageDb extends AbstractDb {
     put(key, value) {
-        localStorage.setItem(this.prefix(key), JSON.stringify(value));
+        localStorage.setItem(this.prefix(key), this.serialize(value));
+        return when.resolve(value);
     }
 
     get(key) {
-        return JSON.parse(localStorage.getItem(this.prefix(key)));
+        return when.resolve(this.deserialize(localStorage.getItem(this.prefix(key))));
     }
 
     exists(key) {
-        return localStorage.getItem(this.prefix(key)) !== null;
+        return when.resolve(localStorage.getItem(this.prefix(key)) !== null);
     }
 
     del(key) {
-        return localStorage.removeItem(this.prefix(key));
+        return when.resolve(localStorage.removeItem(this.prefix(key)));
     }
 
     prefix(key) {
