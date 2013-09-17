@@ -19,6 +19,10 @@ class AbstractDb {
         throw new Error('Not implemented');
     }
 
+    clear() {
+        throw new Error('Not implemented');
+    }
+
     serialize(value) {
         return JSON.stringify(value);
     }

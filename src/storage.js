@@ -1,3 +1,3 @@
-import { Db, LocalstorageDb } from './storage/db';
+import { Db, LocalstorageDb, IndexedDb } from './storage/db';
 
-export { Db, LocalstorageDb };
+export { Db, LocalstorageDb, IndexedDb };

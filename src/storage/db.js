@@ -1,4 +1,5 @@
 import LocalstorageDb from './adapters/localstorage_db';
+import IndexedDb from './adapters/indexed_db';
 
 var Db = {
     open: function(namespace) {
@@ -6,4 +7,4 @@ var Db = {
     }
 };
 
-export { Db, LocalstorageDb };
+export { Db, LocalstorageDb, IndexedDb };

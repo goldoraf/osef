@@ -596,16 +596,18 @@ exports.domain = domain;
 exports.storage = storage;
 
 
-},{"./domain":1,"./storage":5,"./ui":9}],5:[function(require,module,exports){
+},{"./domain":1,"./storage":5,"./ui":10}],5:[function(require,module,exports){
 "use strict";
 var __dependency1__ = require("./storage/db");
 var Db = __dependency1__.Db;
 var LocalstorageDb = __dependency1__.LocalstorageDb;
+var IndexedDb = __dependency1__.IndexedDb;
 exports.Db = Db;
 exports.LocalstorageDb = LocalstorageDb;
+exports.IndexedDb = IndexedDb;
 
 
-},{"./storage/db":8}],6:[function(require,module,exports){
+},{"./storage/db":9}],6:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -639,6 +641,9 @@ var AbstractDb = function() {
     exists: function(key) {
       throw new Error('Not implemented');
     },
+    clear: function() {
+      throw new Error('Not implemented');
+    },
     serialize: function(value) {
       return JSON.stringify(value);
     },
@@ -659,6 +664,154 @@ module.exports = AbstractDb;
 
 
 },{}],7:[function(require,module,exports){
+"use strict";
+var $__superDescriptor = function(proto, name) {
+  if (!proto) throw new TypeError('super is null');
+  return Object.getPropertyDescriptor(proto, name);
+}, $__superCall = function(self, proto, name, args) {
+  var descriptor = $__superDescriptor(proto, name);
+  if (descriptor) {
+    if ('value'in descriptor) return descriptor.value.apply(self, args);
+    if (descriptor.get) return descriptor.get.call(self).apply(self, args);
+  }
+  throw new TypeError("Object has no method '" + name + "'.");
+}, $__getProtoParent = function(superClass) {
+  if (typeof superClass === 'function') {
+    var prototype = superClass.prototype;
+    if (Object(prototype) === prototype || prototype === null) return superClass.prototype;
+  }
+  if (superClass === null) return null;
+  throw new TypeError();
+}, $__getDescriptors = function(object) {
+  var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
+  for (var i = 0; i < names.length; i++) {
+    var name = names[i];
+    descriptors[name] = Object.getOwnPropertyDescriptor(object, name);
+  }
+  return descriptors;
+}, $__createClass = function(object, staticObject, protoParent, superClass, hasConstructor) {
+  var ctor = object.constructor;
+  if (typeof superClass === 'function') ctor.__proto__ = superClass;
+  if (!hasConstructor && protoParent === null) ctor = object.constructor = function() {};
+  var descriptors = $__getDescriptors(object);
+  descriptors.constructor.enumerable = false;
+  ctor.prototype = Object.create(protoParent, descriptors);
+  Object.defineProperties(ctor, $__getDescriptors(staticObject));
+  return ctor;
+};
+var AbstractDb = require("./abstract_db");
+var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB, IDBDatabase = window.IDBDatabase || window.webkitIDBDatabase, IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction, IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
+var IndexedDb = function($__super) {
+  'use strict';
+  var $__proto = $__getProtoParent($__super);
+  var $IndexedDb = ($__createClass)({
+    constructor: function(namespace) {
+      $__superCall(this, $__proto, "constructor", [namespace]);
+      var parts = namespace.split(':');
+      this.dbName = parts[0];
+      this.storeName = parts[1];
+      this.key = 'id';
+      this.connected = false;
+      this.db = null;
+    },
+    put: function(key, value) {
+      if (!value.hasOwnProperty(this.key)) {
+        value[this.key] = key;
+      }
+      var that = this;
+      return this.getStore().then(function(store) {
+        return that.toPromise(store.add(value));
+      });
+    },
+    get: function(key) {
+      var that = this;
+      return this.getStore().then(function(store) {
+        return that.toPromise(store.get(key));
+      });
+    },
+    exists: function(key) {
+      var that = this;
+      return this.getStore().then(function(store) {
+        return that.toPromise(store.count(key));
+      }).then(function(value) {
+        return when.resolve(value === 1);
+      });
+    },
+    del: function(key) {
+      var that = this;
+      return this.getStore().then(function(store) {
+        return that.toPromise(store.delete (key));
+      });
+    },
+    clear: function() {
+      var that = this;
+      return this.getStore().then(function(store) {
+        return that.toPromise(store.clear());
+      });
+    },
+    toPromise: function(request) {
+      var deferred = when.defer();
+      request.onsuccess = function(e) {
+        deferred.resolve(this.result);
+      };
+      request.onerror = function(e) {
+        deferred.reject(new Error());
+      };
+      return deferred.promise;
+    },
+    getStore: function() {
+      var storeName = this.storeName;
+      return this.connect().then(function(db) {
+        var transaction = db.transaction([storeName], "readwrite");
+        transaction.oncomplete = function(e) {};
+        transaction.onerror = function(e) {};
+        return when.resolve(transaction.objectStore(storeName));
+      });
+    },
+    connect: function() {
+      if (this.connected) {
+        return when.resolve(this.db);
+      }
+      var that = this;
+      return this.open().then(function(db) {
+        return that.upgradeIfNeeded(db);
+      }).then(function(db) {
+        that.db = db;
+        that.connected = true;
+        return when.resolve(db);
+      });
+    },
+    open: function(version, createStore) {
+      var deferred = when.defer(), request = version ? indexedDB.open(this.dbName, version): indexedDB.open(this.dbName);
+      request.onsuccess = function(e) {
+        deferred.resolve(this.result);
+      };
+      request.onerror = function(e) {
+        deferred.reject(new Error("Can't open indexedDb"));
+      };
+      if (createStore) {
+        var storeName = this.storeName, key = this.key;
+        request.onupgradeneeded = function(e) {
+          this.result.createObjectStore(storeName, {keyPath: key});
+        };
+      }
+      return deferred.promise;
+    },
+    upgradeIfNeeded: function(db) {
+      if (!db.objectStoreNames.contains(this.storeName)) {
+        var version = db.version + 1;
+        db.close();
+        return this.open(version, true);
+      }
+      return when.resolve(db);
+    }
+  }, {}, $__proto, $__super, true);
+  return $IndexedDb;
+}(AbstractDb);
+module.exports = IndexedDb;
+
+
+},{"./abstract_db":6}],8:[function(require,module,exports){
 "use strict";
 var $__superDescriptor = function(proto, name) {
   if (!proto) throw new TypeError('super is null');
@@ -724,17 +877,19 @@ var LocalstorageDb = function($__super) {
 module.exports = LocalstorageDb;
 
 
-},{"./abstract_db":6}],8:[function(require,module,exports){
+},{"./abstract_db":6}],9:[function(require,module,exports){
 "use strict";
 var LocalstorageDb = require("./adapters/localstorage_db");
+var IndexedDb = require("./adapters/indexed_db");
 var Db = {open: function(namespace) {
     return new LocalstorageDb(namespace);
   }};
 exports.Db = Db;
 exports.LocalstorageDb = LocalstorageDb;
+exports.IndexedDb = IndexedDb;
 
 
-},{"./adapters/localstorage_db":7}],9:[function(require,module,exports){
+},{"./adapters/indexed_db":7,"./adapters/localstorage_db":8}],10:[function(require,module,exports){
 "use strict";
 var View = require("./ui/view");
 var StateManager = require("./ui/state_manager");
@@ -746,7 +901,7 @@ exports.ViewGroup = ViewGroup;
 exports.Layout = Layout;
 
 
-},{"./ui/layout":10,"./ui/state_manager":11,"./ui/view":12,"./ui/view_group":13}],10:[function(require,module,exports){
+},{"./ui/layout":11,"./ui/state_manager":12,"./ui/view":13,"./ui/view_group":14}],11:[function(require,module,exports){
 "use strict";
 var $__superDescriptor = function(proto, name) {
   if (!proto) throw new TypeError('super is null');
@@ -806,7 +961,7 @@ var Layout = function($__super) {
 module.exports = Layout;
 
 
-},{"./view":12,"./view_group":13}],11:[function(require,module,exports){
+},{"./view":13,"./view_group":14}],12:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -877,7 +1032,7 @@ var StateManager = function() {
 module.exports = StateManager;
 
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -959,7 +1114,7 @@ var View = function() {
 module.exports = View;
 
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
