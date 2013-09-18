@@ -1,4 +1,4 @@
-class AbstractDb {
+class AbstractKeyValueStore {
     constructor(namespace) {
         this.namespace = namespace;
     }
@@ -39,4 +39,4 @@ class AbstractDb {
     }
 }
 
-export default AbstractDb;
+export default AbstractKeyValueStore;

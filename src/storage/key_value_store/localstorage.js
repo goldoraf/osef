@@ -1,6 +1,6 @@
-import AbstractDb from './abstract_db';
+import AbstractKeyValueStore from './abstract';
 
-class LocalstorageDb extends AbstractDb {
+class LocalstorageKeyValueStore extends AbstractKeyValueStore {
     put(key, value) {
         localStorage.setItem(this.prefix(key), this.serialize(value));
         return when.resolve(value);
@@ -23,4 +23,4 @@ class LocalstorageDb extends AbstractDb {
     }
 }
 
-export default LocalstorageDb;
+export default LocalstorageKeyValueStore;

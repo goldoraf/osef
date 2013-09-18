@@ -1,11 +1,11 @@
-import AbstractDb from './abstract_db';
+import AbstractKeyValueStore from './abstract';
 
 var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB,
     IDBDatabase = window.IDBDatabase || window.webkitIDBDatabase,
     IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction,
     IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
 
-class IndexedDb extends AbstractDb {
+class IndexedDbKeyValueStore extends AbstractKeyValueStore {
     constructor(namespace) {
         super(namespace);
         var parts = namespace.split(':');
@@ -137,4 +137,4 @@ class IndexedDb extends AbstractDb {
     }
 }
 
-export default IndexedDb;
+export default IndexedDbKeyValueStore;

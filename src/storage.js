@@ -1,3 +1,3 @@
-import { Db, LocalstorageDb, IndexedDb } from './storage/db';
+import { KeyValueStore, LocalstorageKeyValueStore, IndexedDbKeyValueStore } from './storage/key_value_store';
 
-export { Db, LocalstorageDb, IndexedDb };
+export { KeyValueStore, LocalstorageKeyValueStore, IndexedDbKeyValueStore };

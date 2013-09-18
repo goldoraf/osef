@@ -598,16 +598,28 @@ exports.storage = storage;
 
 },{"./domain":1,"./storage":5,"./ui":10}],5:[function(require,module,exports){
 "use strict";
-var __dependency1__ = require("./storage/db");
-var Db = __dependency1__.Db;
-var LocalstorageDb = __dependency1__.LocalstorageDb;
-var IndexedDb = __dependency1__.IndexedDb;
-exports.Db = Db;
-exports.LocalstorageDb = LocalstorageDb;
-exports.IndexedDb = IndexedDb;
+var __dependency1__ = require("./storage/key_value_store");
+var KeyValueStore = __dependency1__.KeyValueStore;
+var LocalstorageKeyValueStore = __dependency1__.LocalstorageKeyValueStore;
+var IndexedDbKeyValueStore = __dependency1__.IndexedDbKeyValueStore;
+exports.KeyValueStore = KeyValueStore;
+exports.LocalstorageKeyValueStore = LocalstorageKeyValueStore;
+exports.IndexedDbKeyValueStore = IndexedDbKeyValueStore;
 
 
-},{"./storage/db":9}],6:[function(require,module,exports){
+},{"./storage/key_value_store":6}],6:[function(require,module,exports){
+"use strict";
+var LocalstorageKeyValueStore = require("./key_value_store/localstorage");
+var IndexedDbKeyValueStore = require("./key_value_store/indexed_db");
+var KeyValueStore = {open: function(namespace) {
+    return new LocalstorageKeyValueStore(namespace);
+  }};
+exports.KeyValueStore = KeyValueStore;
+exports.LocalstorageKeyValueStore = LocalstorageKeyValueStore;
+exports.IndexedDbKeyValueStore = IndexedDbKeyValueStore;
+
+
+},{"./key_value_store/indexed_db":8,"./key_value_store/localstorage":9}],7:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -623,9 +635,9 @@ var $__getDescriptors = function(object) {
   Object.defineProperties(ctor, $__getDescriptors(staticObject));
   return ctor;
 };
-var AbstractDb = function() {
+var AbstractKeyValueStore = function() {
   'use strict';
-  var $AbstractDb = ($__createClassNoExtends)({
+  var $AbstractKeyValueStore = ($__createClassNoExtends)({
     constructor: function(namespace) {
       this.namespace = namespace;
     },
@@ -658,12 +670,12 @@ var AbstractDb = function() {
       }
     }
   }, {});
-  return $AbstractDb;
+  return $AbstractKeyValueStore;
 }();
-module.exports = AbstractDb;
+module.exports = AbstractKeyValueStore;
 
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 "use strict";
 var $__superDescriptor = function(proto, name) {
   if (!proto) throw new TypeError('super is null');
@@ -699,12 +711,12 @@ var $__superDescriptor = function(proto, name) {
   Object.defineProperties(ctor, $__getDescriptors(staticObject));
   return ctor;
 };
-var AbstractDb = require("./abstract_db");
+var AbstractKeyValueStore = require("./abstract");
 var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB, IDBDatabase = window.IDBDatabase || window.webkitIDBDatabase, IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction, IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
-var IndexedDb = function($__super) {
+var IndexedDbKeyValueStore = function($__super) {
   'use strict';
   var $__proto = $__getProtoParent($__super);
-  var $IndexedDb = ($__createClass)({
+  var $IndexedDbKeyValueStore = ($__createClass)({
     constructor: function(namespace) {
       $__superCall(this, $__proto, "constructor", [namespace]);
       var parts = namespace.split(':');
@@ -806,12 +818,12 @@ var IndexedDb = function($__super) {
       return when.resolve(db);
     }
   }, {}, $__proto, $__super, true);
-  return $IndexedDb;
-}(AbstractDb);
-module.exports = IndexedDb;
+  return $IndexedDbKeyValueStore;
+}(AbstractKeyValueStore);
+module.exports = IndexedDbKeyValueStore;
 
 
-},{"./abstract_db":6}],8:[function(require,module,exports){
+},{"./abstract":7}],9:[function(require,module,exports){
 "use strict";
 var $__superDescriptor = function(proto, name) {
   if (!proto) throw new TypeError('super is null');
@@ -847,11 +859,11 @@ var $__superDescriptor = function(proto, name) {
   Object.defineProperties(ctor, $__getDescriptors(staticObject));
   return ctor;
 };
-var AbstractDb = require("./abstract_db");
-var LocalstorageDb = function($__super) {
+var AbstractKeyValueStore = require("./abstract");
+var LocalstorageKeyValueStore = function($__super) {
   'use strict';
   var $__proto = $__getProtoParent($__super);
-  var $LocalstorageDb = ($__createClass)({
+  var $LocalstorageKeyValueStore = ($__createClass)({
     constructor: function() {
       $__superCall(this, $__proto, "constructor", arguments);
     },
@@ -872,24 +884,12 @@ var LocalstorageDb = function($__super) {
       return this.namespace === null ? key: this.namespace + ':' + key;
     }
   }, {}, $__proto, $__super, false);
-  return $LocalstorageDb;
-}(AbstractDb);
-module.exports = LocalstorageDb;
+  return $LocalstorageKeyValueStore;
+}(AbstractKeyValueStore);
+module.exports = LocalstorageKeyValueStore;
 
 
-},{"./abstract_db":6}],9:[function(require,module,exports){
-"use strict";
-var LocalstorageDb = require("./adapters/localstorage_db");
-var IndexedDb = require("./adapters/indexed_db");
-var Db = {open: function(namespace) {
-    return new LocalstorageDb(namespace);
-  }};
-exports.Db = Db;
-exports.LocalstorageDb = LocalstorageDb;
-exports.IndexedDb = IndexedDb;
-
-
-},{"./adapters/indexed_db":7,"./adapters/localstorage_db":8}],10:[function(require,module,exports){
+},{"./abstract":7}],10:[function(require,module,exports){
 "use strict";
 var View = require("./ui/view");
 var StateManager = require("./ui/state_manager");
