@@ -596,18 +596,164 @@ exports.domain = domain;
 exports.storage = storage;
 
 
-},{"./domain":1,"./storage":5,"./ui":10}],5:[function(require,module,exports){
+},{"./domain":1,"./storage":5,"./ui":13}],5:[function(require,module,exports){
 "use strict";
 var __dependency1__ = require("./storage/key_value_store");
 var KeyValueStore = __dependency1__.KeyValueStore;
 var LocalstorageKeyValueStore = __dependency1__.LocalstorageKeyValueStore;
 var IndexedDbKeyValueStore = __dependency1__.IndexedDbKeyValueStore;
+var __dependency2__ = require("./storage/event_store");
+var EventStore = __dependency2__.EventStore;
+var LocalstorageEventStoreAdapter = __dependency2__.LocalstorageEventStoreAdapter;
+exports.EventStore = EventStore;
+exports.LocalstorageEventStoreAdapter = LocalstorageEventStoreAdapter;
 exports.KeyValueStore = KeyValueStore;
 exports.LocalstorageKeyValueStore = LocalstorageKeyValueStore;
 exports.IndexedDbKeyValueStore = IndexedDbKeyValueStore;
 
 
-},{"./storage/key_value_store":6}],6:[function(require,module,exports){
+},{"./storage/event_store":6,"./storage/key_value_store":9}],6:[function(require,module,exports){
+"use strict";
+var $__getDescriptors = function(object) {
+  var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
+  for (var i = 0; i < names.length; i++) {
+    var name = names[i];
+    descriptors[name] = Object.getOwnPropertyDescriptor(object, name);
+  }
+  return descriptors;
+}, $__createClassNoExtends = function(object, staticObject) {
+  var ctor = object.constructor;
+  Object.defineProperty(object, 'constructor', {enumerable: false});
+  ctor.prototype = object;
+  Object.defineProperties(ctor, $__getDescriptors(staticObject));
+  return ctor;
+};
+var LocalstorageEventStoreAdapter = require("./event_store/localstorage");
+var EventStore = function() {
+  'use strict';
+  var $EventStore = ($__createClassNoExtends)({
+    constructor: function(storeAdapter) {
+      this.adapter = storeAdapter;
+    },
+    appendToStream: function(streamId, expectedVersion, events) {
+      if (events.length === 0) {
+        return;
+      }
+      events.forEach(function(event) {
+        this.adapter.append(streamId, expectedVersion, event);
+      }, this);
+    },
+    loadEventStream: function(streamId) {
+      return this.readEventStream(streamId, 0, null);
+    },
+    readEventStream: function(streamId, skipEvents, maxCount) {
+      return this.adapter.read(streamId, skipEvents, maxCount);
+    }
+  }, {});
+  return $EventStore;
+}();
+exports.EventStore = EventStore;
+exports.LocalstorageEventStoreAdapter = LocalstorageEventStoreAdapter;
+
+
+},{"./event_store/localstorage":8}],7:[function(require,module,exports){
+"use strict";
+var $__getDescriptors = function(object) {
+  var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
+  for (var i = 0; i < names.length; i++) {
+    var name = names[i];
+    descriptors[name] = Object.getOwnPropertyDescriptor(object, name);
+  }
+  return descriptors;
+}, $__createClassNoExtends = function(object, staticObject) {
+  var ctor = object.constructor;
+  Object.defineProperty(object, 'constructor', {enumerable: false});
+  ctor.prototype = object;
+  Object.defineProperties(ctor, $__getDescriptors(staticObject));
+  return ctor;
+};
+var AbstractEventStoreAdapter = function() {
+  'use strict';
+  var $AbstractEventStoreAdapter = ($__createClassNoExtends)({
+    constructor: function(namespace) {
+      this.namespace = namespace;
+    },
+    append: function(streamId, expectedVersion, event) {
+      throw new Error('Not implemented');
+    },
+    read: function(streamId, skipEvents, maxCount) {
+      throw new Error('Not implemented');
+    }
+  }, {});
+  return $AbstractEventStoreAdapter;
+}();
+module.exports = AbstractEventStoreAdapter;
+
+
+},{}],8:[function(require,module,exports){
+"use strict";
+var $__superDescriptor = function(proto, name) {
+  if (!proto) throw new TypeError('super is null');
+  return Object.getPropertyDescriptor(proto, name);
+}, $__superCall = function(self, proto, name, args) {
+  var descriptor = $__superDescriptor(proto, name);
+  if (descriptor) {
+    if ('value'in descriptor) return descriptor.value.apply(self, args);
+    if (descriptor.get) return descriptor.get.call(self).apply(self, args);
+  }
+  throw new TypeError("Object has no method '" + name + "'.");
+}, $__getProtoParent = function(superClass) {
+  if (typeof superClass === 'function') {
+    var prototype = superClass.prototype;
+    if (Object(prototype) === prototype || prototype === null) return superClass.prototype;
+  }
+  if (superClass === null) return null;
+  throw new TypeError();
+}, $__getDescriptors = function(object) {
+  var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
+  for (var i = 0; i < names.length; i++) {
+    var name = names[i];
+    descriptors[name] = Object.getOwnPropertyDescriptor(object, name);
+  }
+  return descriptors;
+}, $__createClass = function(object, staticObject, protoParent, superClass, hasConstructor) {
+  var ctor = object.constructor;
+  if (typeof superClass === 'function') ctor.__proto__ = superClass;
+  if (!hasConstructor && protoParent === null) ctor = object.constructor = function() {};
+  var descriptors = $__getDescriptors(object);
+  descriptors.constructor.enumerable = false;
+  ctor.prototype = Object.create(protoParent, descriptors);
+  Object.defineProperties(ctor, $__getDescriptors(staticObject));
+  return ctor;
+};
+var AbstractEventStoreAdapter = require("./abstract");
+var LocalstorageEventStoreAdapter = function($__super) {
+  'use strict';
+  var $__proto = $__getProtoParent($__super);
+  var $LocalstorageEventStoreAdapter = ($__createClass)({
+    constructor: function(namespace) {
+      $__superCall(this, $__proto, "constructor", [namespace]);
+      this.storage = window.localStorage;
+    },
+    append: function(streamId, expectedVersion, event) {
+      var version = expectedVersion + 1;
+      this.storage.setItem(this.getKey(streamId, version), JSON.stringify(event));
+      this.setVersion(streamId, version);
+    },
+    getKey: function(streamId, version) {
+      return this.namespace + ':' + streamId + ':' + version;
+    },
+    setVersion: function(streamId, version) {
+      this.storage.setItem(this.getKey(streamId, '__version__'), version.toString());
+    },
+    getCurrentVersion: function(streamId) {}
+  }, {}, $__proto, $__super, true);
+  return $LocalstorageEventStoreAdapter;
+}(AbstractEventStoreAdapter);
+module.exports = LocalstorageEventStoreAdapter;
+
+
+},{"./abstract":7}],9:[function(require,module,exports){
 "use strict";
 var LocalstorageKeyValueStore = require("./key_value_store/localstorage");
 var IndexedDbKeyValueStore = require("./key_value_store/indexed_db");
@@ -619,7 +765,7 @@ exports.LocalstorageKeyValueStore = LocalstorageKeyValueStore;
 exports.IndexedDbKeyValueStore = IndexedDbKeyValueStore;
 
 
-},{"./key_value_store/indexed_db":8,"./key_value_store/localstorage":9}],7:[function(require,module,exports){
+},{"./key_value_store/indexed_db":11,"./key_value_store/localstorage":12}],10:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -675,7 +821,7 @@ var AbstractKeyValueStore = function() {
 module.exports = AbstractKeyValueStore;
 
 
-},{}],8:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 "use strict";
 var $__superDescriptor = function(proto, name) {
   if (!proto) throw new TypeError('super is null');
@@ -823,7 +969,7 @@ var IndexedDbKeyValueStore = function($__super) {
 module.exports = IndexedDbKeyValueStore;
 
 
-},{"./abstract":7}],9:[function(require,module,exports){
+},{"./abstract":10}],12:[function(require,module,exports){
 "use strict";
 var $__superDescriptor = function(proto, name) {
   if (!proto) throw new TypeError('super is null');
@@ -889,7 +1035,7 @@ var LocalstorageKeyValueStore = function($__super) {
 module.exports = LocalstorageKeyValueStore;
 
 
-},{"./abstract":7}],10:[function(require,module,exports){
+},{"./abstract":10}],13:[function(require,module,exports){
 "use strict";
 var View = require("./ui/view");
 var StateManager = require("./ui/state_manager");
@@ -901,7 +1047,7 @@ exports.ViewGroup = ViewGroup;
 exports.Layout = Layout;
 
 
-},{"./ui/layout":11,"./ui/state_manager":12,"./ui/view":13,"./ui/view_group":14}],11:[function(require,module,exports){
+},{"./ui/layout":14,"./ui/state_manager":15,"./ui/view":16,"./ui/view_group":17}],14:[function(require,module,exports){
 "use strict";
 var $__superDescriptor = function(proto, name) {
   if (!proto) throw new TypeError('super is null');
@@ -961,7 +1107,7 @@ var Layout = function($__super) {
 module.exports = Layout;
 
 
-},{"./view":13,"./view_group":14}],12:[function(require,module,exports){
+},{"./view":16,"./view_group":17}],15:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -1032,7 +1178,7 @@ var StateManager = function() {
 module.exports = StateManager;
 
 
-},{}],13:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -1114,7 +1260,7 @@ var View = function() {
 module.exports = View;
 
 
-},{}],14:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
