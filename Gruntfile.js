@@ -98,27 +98,17 @@ module.exports = function(grunt) {
         },
 
         handlebars: {
-            testapp: {
+            compile: {
                 options: {
                     namespace: "JST",
                     processName: function(filePath) {
                         return filePath.replace(/testapp\/src\/templates\//, '')
+                                       .replace(/test\/src\/templates\//, '')
                                        .replace(/\.hbs/, '');
                     }
                 },
                 files: {
-                    'testapp/js/templates.js': ['testapp/src/templates/**/*.hbs']
-                }
-            },
-            tests: {
-                options: {
-                    namespace: "JST",
-                    processName: function(filePath) {
-                        return filePath.replace(/test\/src\/templates\//, '')
-                                       .replace(/\.hbs/, '');
-                    }
-                },
-                files: {
+                    'testapp/js/templates.js': ['testapp/src/templates/**/*.hbs'],
                     'test/js/templates.js': ['test/src/templates/**/*.hbs']
                 }
             }
@@ -200,13 +190,13 @@ module.exports = function(grunt) {
     ]);
     grunt.registerTask('setup_test_files', [
         'build:test_support_code',
-        'handlebars:tests',
+        'handlebars:compile',
         'copy:tests_framework',
         'browserify:tests'
     ]);
     grunt.registerTask('testapp', [
         'build:testapp',
-        'handlebars:testapp',
+        'handlebars:compile',
         'copy:testapp_framework',
         'connect:testapp',
         'watch'
