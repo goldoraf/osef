@@ -28,6 +28,9 @@ class StateManager {
 
     transitionTo(hash) {
         var state = (hash == '') ? this.default : this.findState(hash);
+        if (!state) {
+            throw new Error("Route not found for hash: " + hash);
+        }
         var params = {},
             matched = hash.match(state.regex);
         for (var i in state.params) {
