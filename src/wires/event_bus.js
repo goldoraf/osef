@@ -8,14 +8,14 @@ CustomEvent.prototype = window.CustomEvent.prototype;
 window.CustomEvent = CustomEvent;
 
 var EventBus = {
-    subscribe: function(stream, fn) {
-        document.addEventListener(stream, function(e) {
-            fn(e.detail);
+    subscribe: function(name, callback) {
+        document.addEventListener(name, function(e) {
+            callback(e.detail);
         });
     },
 
-    publish: function(stream, event) {
-        var customEvent = new CustomEvent(stream, { detail: event});
+    publish: function(name, data) {
+        var customEvent = new CustomEvent(name, { detail: data});
         document.dispatchEvent(customEvent);
     }
 };

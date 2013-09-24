@@ -476,12 +476,10 @@
 return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 "use strict";
 var Aggregate = require("./domain/aggregate");
-var EventBus = require("./domain/event_bus").EventBus;
 exports.Aggregate = Aggregate;
-exports.EventBus = EventBus;
 
 
-},{"./domain/aggregate":2,"./domain/event_bus":3}],2:[function(require,module,exports){
+},{"./domain/aggregate":2}],2:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -559,44 +557,17 @@ module.exports = Aggregate;
 
 },{}],3:[function(require,module,exports){
 "use strict";
-function CustomEvent(event, params) {
-  params = params || {
-    bubbles: false,
-    cancelable: false,
-    detail: undefined
-  };
-  var evt = document.createEvent('CustomEvent');
-  evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
-  return evt;
-}
-;
-CustomEvent.prototype = window.CustomEvent.prototype;
-window.CustomEvent = CustomEvent;
-var EventBus = {
-  subscribe: function(stream, fn) {
-    document.addEventListener(stream, function(e) {
-      fn(e.detail);
-    });
-  },
-  publish: function(stream, event) {
-    var customEvent = new CustomEvent(stream, {detail: event});
-    document.dispatchEvent(customEvent);
-  }
-};
-exports.EventBus = EventBus;
-
-
-},{}],4:[function(require,module,exports){
-"use strict";
 var ui = require("./ui");
 var domain = require("./domain");
 var storage = require("./storage");
+var wires = require("./wires");
 exports.ui = ui;
 exports.domain = domain;
 exports.storage = storage;
+exports.wires = wires;
 
 
-},{"./domain":1,"./storage":5,"./ui":13}],5:[function(require,module,exports){
+},{"./domain":1,"./storage":4,"./ui":12,"./wires":18}],4:[function(require,module,exports){
 "use strict";
 var __dependency1__ = require("./storage/key_value_store");
 var KeyValueStore = __dependency1__.KeyValueStore;
@@ -612,7 +583,7 @@ exports.LocalstorageKeyValueStore = LocalstorageKeyValueStore;
 exports.IndexedDbKeyValueStore = IndexedDbKeyValueStore;
 
 
-},{"./storage/event_store":6,"./storage/key_value_store":9}],6:[function(require,module,exports){
+},{"./storage/event_store":5,"./storage/key_value_store":8}],5:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -656,7 +627,7 @@ exports.EventStore = EventStore;
 exports.LocalstorageEventStoreAdapter = LocalstorageEventStoreAdapter;
 
 
-},{"./event_store/localstorage":8}],7:[function(require,module,exports){
+},{"./event_store/localstorage":7}],6:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -690,7 +661,7 @@ var AbstractEventStoreAdapter = function() {
 module.exports = AbstractEventStoreAdapter;
 
 
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 "use strict";
 var $__superDescriptor = function(proto, name) {
   if (!proto) throw new TypeError('super is null');
@@ -772,7 +743,7 @@ var LocalstorageEventStoreAdapter = function($__super) {
 module.exports = LocalstorageEventStoreAdapter;
 
 
-},{"./abstract":7}],9:[function(require,module,exports){
+},{"./abstract":6}],8:[function(require,module,exports){
 "use strict";
 var LocalstorageKeyValueStore = require("./key_value_store/localstorage");
 var IndexedDbKeyValueStore = require("./key_value_store/indexed_db");
@@ -784,7 +755,7 @@ exports.LocalstorageKeyValueStore = LocalstorageKeyValueStore;
 exports.IndexedDbKeyValueStore = IndexedDbKeyValueStore;
 
 
-},{"./key_value_store/indexed_db":11,"./key_value_store/localstorage":12}],10:[function(require,module,exports){
+},{"./key_value_store/indexed_db":10,"./key_value_store/localstorage":11}],9:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -840,7 +811,7 @@ var AbstractKeyValueStore = function() {
 module.exports = AbstractKeyValueStore;
 
 
-},{}],11:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 "use strict";
 var $__superDescriptor = function(proto, name) {
   if (!proto) throw new TypeError('super is null');
@@ -988,7 +959,7 @@ var IndexedDbKeyValueStore = function($__super) {
 module.exports = IndexedDbKeyValueStore;
 
 
-},{"./abstract":10}],12:[function(require,module,exports){
+},{"./abstract":9}],11:[function(require,module,exports){
 "use strict";
 var $__superDescriptor = function(proto, name) {
   if (!proto) throw new TypeError('super is null');
@@ -1054,19 +1025,21 @@ var LocalstorageKeyValueStore = function($__super) {
 module.exports = LocalstorageKeyValueStore;
 
 
-},{"./abstract":10}],13:[function(require,module,exports){
+},{"./abstract":9}],12:[function(require,module,exports){
 "use strict";
 var View = require("./ui/view");
+var ViewContext = require("./ui/view_context");
 var StateManager = require("./ui/state_manager");
 var ViewGroup = require("./ui/view_group");
 var Layout = require("./ui/layout");
 exports.View = View;
+exports.ViewContext = ViewContext;
 exports.StateManager = StateManager;
 exports.ViewGroup = ViewGroup;
 exports.Layout = Layout;
 
 
-},{"./ui/layout":14,"./ui/state_manager":15,"./ui/view":16,"./ui/view_group":17}],14:[function(require,module,exports){
+},{"./ui/layout":13,"./ui/state_manager":14,"./ui/view":15,"./ui/view_context":16,"./ui/view_group":17}],13:[function(require,module,exports){
 "use strict";
 var $__superDescriptor = function(proto, name) {
   if (!proto) throw new TypeError('super is null');
@@ -1126,7 +1099,7 @@ var Layout = function($__super) {
 module.exports = Layout;
 
 
-},{"./view":16,"./view_group":17}],15:[function(require,module,exports){
+},{"./view":15,"./view_group":17}],14:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -1176,6 +1149,9 @@ var StateManager = function() {
     },
     transitionTo: function(hash) {
       var state = (hash == '') ? this.default: this.findState(hash);
+      if (!state) {
+        throw new Error("Route not found for hash: " + hash);
+      }
       var params = {}, matched = hash.match(state.regex);
       for (var i in state.params) {
         var param = state.params[i];
@@ -1197,7 +1173,7 @@ var StateManager = function() {
 module.exports = StateManager;
 
 
-},{}],16:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -1277,6 +1253,44 @@ var View = function() {
   return $View;
 }();
 module.exports = View;
+
+
+},{}],16:[function(require,module,exports){
+"use strict";
+var $__getDescriptors = function(object) {
+  var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
+  for (var i = 0; i < names.length; i++) {
+    var name = names[i];
+    descriptors[name] = Object.getOwnPropertyDescriptor(object, name);
+  }
+  return descriptors;
+}, $__createClassNoExtends = function(object, staticObject) {
+  var ctor = object.constructor;
+  Object.defineProperty(object, 'constructor', {enumerable: false});
+  ctor.prototype = object;
+  Object.defineProperties(ctor, $__getDescriptors(staticObject));
+  return ctor;
+};
+var ViewContext = function() {
+  'use strict';
+  var $ViewContext = ($__createClassNoExtends)({
+    constructor: function(state) {
+      this.state = state;
+      this.changeHandlers = [];
+    },
+    changed: function(newState) {
+      this.state = newState;
+      this.changeHandlers.forEach(function(handler) {
+        handler();
+      }, this);
+    },
+    onChange: function(handler) {
+      this.changeHandlers.push(handler);
+    }
+  }, {});
+  return $ViewContext;
+}();
+module.exports = ViewContext;
 
 
 },{}],17:[function(require,module,exports){
@@ -1407,6 +1421,41 @@ var AnimationManager = function() {
 module.exports = ViewGroup;
 
 
-},{}]},{},[4])(4)
+},{}],18:[function(require,module,exports){
+"use strict";
+var EventBus = require("./wires/event_bus").EventBus;
+exports.EventBus = EventBus;
+
+
+},{"./wires/event_bus":19}],19:[function(require,module,exports){
+"use strict";
+function CustomEvent(event, params) {
+  params = params || {
+    bubbles: false,
+    cancelable: false,
+    detail: undefined
+  };
+  var evt = document.createEvent('CustomEvent');
+  evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
+  return evt;
+}
+;
+CustomEvent.prototype = window.CustomEvent.prototype;
+window.CustomEvent = CustomEvent;
+var EventBus = {
+  subscribe: function(name, callback) {
+    document.addEventListener(name, function(e) {
+      callback(e.detail);
+    });
+  },
+  publish: function(name, data) {
+    var customEvent = new CustomEvent(name, {detail: data});
+    document.dispatchEvent(customEvent);
+  }
+};
+exports.EventBus = EventBus;
+
+
+},{}]},{},[3])(3)
 });
 ;

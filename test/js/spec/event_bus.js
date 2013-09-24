@@ -1,4 +1,4 @@
-var EventBus = Osef.domain.EventBus;
+var EventBus = Osef.wires.EventBus;
 
 describe('EventBus tests', function() {
     it('should work ;)', function(done) {
