@@ -1,3 +1,5 @@
+import { EventBus } from '../wires/event_bus';
+
 var eventSplitter = /^(\S+)\s*(.*)$/;
 
 class View {
@@ -67,6 +69,10 @@ class View {
 
     detachEvents() {
         // TODO
+    }
+
+    trigger(eventName, data) {
+        EventBus.publish(eventName, data);
     }
 
     $(selector) {

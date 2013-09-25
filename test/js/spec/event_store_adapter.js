@@ -23,9 +23,9 @@ describe('LocalstorageEventStoreAdapter', function() {
     });
 
     describe('append', function() {
-        it('should store the data in localstorage', function() {
+        it('should store the data in localstorage along with its version number', function() {
             store.append('contact-123', 0, {foo: 'bar'});
-            assert(spy.calledWith('test:contact-123:1', '{"foo":"bar"}'));
+            assert(spy.calledWith('test:contact-123:1', '{"data":{"foo":"bar"},"version":1}'));
         });
 
         it('should store the version number', function() {
@@ -47,21 +47,21 @@ describe('LocalstorageEventStoreAdapter', function() {
         });
 
         it('should return all data records', function() {
-            var data = store.read('contact-123');
-            assert.equal(3, data.length);
-            assert.deepEqual({hello: 'world'}, data[1]);
+            var records = store.read('contact-123');
+            assert.equal(3, records.length);
+            assert.deepEqual({hello: 'world'}, records[1].data);
         });
 
         it('should return data recorded after a specific version', function() {
-            var data = store.read('contact-123', 2);
-            assert.equal(1, data.length);
-            assert.deepEqual({john: 'doe'}, data[0]);
+            var records = store.read('contact-123', 2);
+            assert.equal(1, records.length);
+            assert.deepEqual({john: 'doe'}, records[0].data);
         });
 
         it('should return data recorded after a specific version with a limit count', function() {
-            var data = store.read('contact-123', 1, 1);
-            assert.equal(1, data.length);
-            assert.deepEqual({hello: 'world'}, data[0]);
+            var records = store.read('contact-123', 1, 1);
+            assert.equal(1, records.length);
+            assert.deepEqual({hello: 'world'}, records[0].data);
         });
     });
 });

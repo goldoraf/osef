@@ -1,58 +1,37 @@
 class Aggregate {
     constructor(identifier) {
         if (identifier === undefined) {
-            this.identifier = generateUUID();
+            identifier = generateUUID();
         }
-        this.version = 0;
-        this.uncommittedEvents = [];
+        this.identifier = identifier;
+        this.state = new AggregateState();
+        this.changes = [];
     }
 
-    // should return a JSON object describing the state of the aggregate
-    snapshot() {
-        throw new Error("Not implemented");
+    apply(event) {
+        this.state.mutate(event);
+        this.changes.push(event);
     }
 
     toEvent(name, data) {
-        var event = { 
-            event: name,
-            type: 'domain',
+        return { 
+            name: name,
             payload: data || {}
         };
-
-        if (!event.payload.id) {
-            event.payload.id = this.identifier;
-        }
-
-        return event;
     }
 
-    loadFromHistory(events) {
-        events.forEach(function(e) {
-            if (e.type == 'snapshot') {
-                this.applySnapshot(e);
-            } else {
-                this.applyEvent(e);
-            }
-        }, this);
-    }
-
-    // should restore the state of the aggregate from the payload's JSON
-    applySnapshot(event) {
-        throw new Error("Not implemented");
-    }
-
-    applyEvent(event) {
-        this[event.event](event.payload);
-        if (event.head && this.version < event.head.revision) { // on est en train de faire un replay...
-            this.version = event.head.revision;
-        } else {
-            event.head = { revision: ++this.version };
-            this.uncommittedEvents.push(event);
-        }
+    getStreamId() {
+        return this.getType().toLowerCase() + '-' + this.identifier;
     }
 
     getType() {
         throw new Error("You must implement the getType() method of aggregates for now");
+    }
+}
+
+class AggregateState {
+    mutate(event) {
+        this[event.name](event.payload);
     }
 }
 
@@ -63,4 +42,4 @@ function generateUUID() {
     });
 }
 
-export default Aggregate;
+export { Aggregate, AggregateState };

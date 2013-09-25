@@ -1,3 +1,3 @@
-import Aggregate from './domain/aggregate';
+import { Aggregate, AggregateState } from './domain/aggregate';
 
-export Aggregate;
+export { Aggregate, AggregateState };

@@ -6,14 +6,14 @@ class LocalstorageEventStoreAdapter extends AbstractEventStoreAdapter {
         this.storage = window.localStorage;
     }
 
-    append(streamId, expectedVersion, event) {
+    append(streamId, expectedVersion, data) {
         var version = this.getCurrentVersion(streamId);
         if (version !== expectedVersion) {
             throw new Error("Concurrency error: the expected version of the aggregate is not the same as the stored one");
         }
 
         version++;
-        this.storage.setItem(this.getKey(streamId, version), JSON.stringify(event));
+        this.storage.setItem(this.getKey(streamId, version), JSON.stringify({ data: data, version: version }));
         this.setVersion(streamId, version);
     }
 

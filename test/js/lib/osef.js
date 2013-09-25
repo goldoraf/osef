@@ -475,8 +475,11 @@
 (function(e){if("function"==typeof bootstrap)bootstrap("osef",e);else if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else if("undefined"!=typeof ses){if(!ses.ok())return;ses.makeOsef=e}else"undefined"!=typeof window?window.Osef=e():global.Osef=e()})(function(){var define,ses,bootstrap,module,exports;
 return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 "use strict";
-var Aggregate = require("./domain/aggregate");
+var __dependency1__ = require("./domain/aggregate");
+var Aggregate = __dependency1__.Aggregate;
+var AggregateState = __dependency1__.AggregateState;
 exports.Aggregate = Aggregate;
+exports.AggregateState = AggregateState;
 
 
 },{"./domain/aggregate":2}],2:[function(require,module,exports){
@@ -500,45 +503,24 @@ var Aggregate = function() {
   var $Aggregate = ($__createClassNoExtends)({
     constructor: function(identifier) {
       if (identifier === undefined) {
-        this.identifier = generateUUID();
+        identifier = generateUUID();
       }
-      this.version = 0;
-      this.uncommittedEvents = [];
+      this.identifier = identifier;
+      this.state = new AggregateState();
+      this.changes = [];
     },
-    snapshot: function() {
-      throw new Error("Not implemented");
+    apply: function(event) {
+      this.state.mutate(event);
+      this.changes.push(event);
     },
     toEvent: function(name, data) {
-      var event = {
-        event: name,
-        type: 'domain',
+      return {
+        name: name,
         payload: data || {}
       };
-      if (!event.payload.id) {
-        event.payload.id = this.identifier;
-      }
-      return event;
     },
-    loadFromHistory: function(events) {
-      events.forEach(function(e) {
-        if (e.type == 'snapshot') {
-          this.applySnapshot(e);
-        } else {
-          this.applyEvent(e);
-        }
-      }, this);
-    },
-    applySnapshot: function(event) {
-      throw new Error("Not implemented");
-    },
-    applyEvent: function(event) {
-      this[event.event](event.payload);
-      if (event.head && this.version < event.head.revision) {
-        this.version = event.head.revision;
-      } else {
-        event.head = {revision: ++this.version};
-        this.uncommittedEvents.push(event);
-      }
+    getStreamId: function() {
+      return this.getType().toLowerCase() + '-' + this.identifier;
     },
     getType: function() {
       throw new Error("You must implement the getType() method of aggregates for now");
@@ -546,13 +528,24 @@ var Aggregate = function() {
   }, {});
   return $Aggregate;
 }();
+var AggregateState = function() {
+  'use strict';
+  var $AggregateState = ($__createClassNoExtends)({
+    constructor: function() {},
+    mutate: function(event) {
+      this[event.name](event.payload);
+    }
+  }, {});
+  return $AggregateState;
+}();
 function generateUUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     var r = Math.random() * 16 | 0, v = c == 'x' ? r: (r & 0x3 | 0x8);
     return v.toString(16);
   });
 }
-module.exports = Aggregate;
+exports.Aggregate = Aggregate;
+exports.AggregateState = AggregateState;
 
 
 },{}],3:[function(require,module,exports){
@@ -569,21 +562,23 @@ exports.wires = wires;
 
 },{"./domain":1,"./storage":4,"./ui":12,"./wires":18}],4:[function(require,module,exports){
 "use strict";
+var LocalstorageEventStoreAdapter = require("./storage/event_store/localstorage");
 var __dependency1__ = require("./storage/key_value_store");
 var KeyValueStore = __dependency1__.KeyValueStore;
 var LocalstorageKeyValueStore = __dependency1__.LocalstorageKeyValueStore;
 var IndexedDbKeyValueStore = __dependency1__.IndexedDbKeyValueStore;
 var __dependency2__ = require("./storage/event_store");
 var EventStore = __dependency2__.EventStore;
-var LocalstorageEventStoreAdapter = __dependency2__.LocalstorageEventStoreAdapter;
+var EventStream = __dependency2__.EventStream;
 exports.EventStore = EventStore;
+exports.EventStream = EventStream;
 exports.LocalstorageEventStoreAdapter = LocalstorageEventStoreAdapter;
 exports.KeyValueStore = KeyValueStore;
 exports.LocalstorageKeyValueStore = LocalstorageKeyValueStore;
 exports.IndexedDbKeyValueStore = IndexedDbKeyValueStore;
 
 
-},{"./storage/event_store":5,"./storage/key_value_store":8}],5:[function(require,module,exports){
+},{"./storage/event_store":5,"./storage/event_store/localstorage":7,"./storage/key_value_store":8}],5:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -599,7 +594,7 @@ var $__getDescriptors = function(object) {
   Object.defineProperties(ctor, $__getDescriptors(staticObject));
   return ctor;
 };
-var LocalstorageEventStoreAdapter = require("./event_store/localstorage");
+var EventBus = require("../wires/event_bus").EventBus;
 var EventStore = function() {
   'use strict';
   var $EventStore = ($__createClassNoExtends)({
@@ -612,10 +607,17 @@ var EventStore = function() {
       }
       events.forEach(function(event) {
         this.adapter.append(streamId, expectedVersion, event);
+        EventBus.publish('domain.' + streamId + '.' + event.name, event);
+        expectedVersion++;
       }, this);
     },
     loadEventStream: function(streamId) {
-      return this.readEventStream(streamId, 0, null);
+      var version = 0, events = [], records = this.readEventStream(streamId, 0, null);
+      records.forEach(function(r) {
+        version = r.version;
+        events.push(r.data);
+      });
+      return new EventStream(streamId, events, version);
     },
     readEventStream: function(streamId, skipEvents, maxCount) {
       return this.adapter.read(streamId, skipEvents, maxCount);
@@ -623,11 +625,20 @@ var EventStore = function() {
   }, {});
   return $EventStore;
 }();
+var EventStream = function() {
+  'use strict';
+  var $EventStream = ($__createClassNoExtends)({constructor: function(streamId, events, version) {
+      this.streamId = streamId;
+      this.events = events;
+      this.version = version;
+    }}, {});
+  return $EventStream;
+}();
 exports.EventStore = EventStore;
-exports.LocalstorageEventStoreAdapter = LocalstorageEventStoreAdapter;
+exports.EventStream = EventStream;
 
 
-},{"./event_store/localstorage":7}],6:[function(require,module,exports){
+},{"../wires/event_bus":19}],6:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -706,13 +717,16 @@ var LocalstorageEventStoreAdapter = function($__super) {
       $__superCall(this, $__proto, "constructor", [namespace]);
       this.storage = window.localStorage;
     },
-    append: function(streamId, expectedVersion, event) {
+    append: function(streamId, expectedVersion, data) {
       var version = this.getCurrentVersion(streamId);
       if (version !== expectedVersion) {
         throw new Error("Concurrency error: the expected version of the aggregate is not the same as the stored one");
       }
       version++;
-      this.storage.setItem(this.getKey(streamId, version), JSON.stringify(event));
+      this.storage.setItem(this.getKey(streamId, version), JSON.stringify({
+        data: data,
+        version: version
+      }));
       this.setVersion(streamId, version);
     },
     read: function(streamId, afterVersion, maxCount) {
@@ -1189,6 +1203,7 @@ var $__getDescriptors = function(object) {
   Object.defineProperties(ctor, $__getDescriptors(staticObject));
   return ctor;
 };
+var EventBus = require("../wires/event_bus").EventBus;
 var eventSplitter = /^(\S+)\s*(.*)$/;
 var View = function() {
   'use strict';
@@ -1243,6 +1258,9 @@ var View = function() {
       }
     },
     detachEvents: function() {},
+    trigger: function(eventName, data) {
+      EventBus.publish(eventName, data);
+    },
     $: function(selector) {
       return this.element.querySelector(selector);
     },
@@ -1255,7 +1273,7 @@ var View = function() {
 module.exports = View;
 
 
-},{}],16:[function(require,module,exports){
+},{"../wires/event_bus":19}],16:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
