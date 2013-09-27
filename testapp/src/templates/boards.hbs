@@ -1,0 +1,14 @@
+<h2>Boards</h2>
+
+<h3>Create board</h3>
+<form id="create-board">
+    <label>Name:</label>
+    <input type="text" name="name" />
+    <input type="submit" value="Create" />
+</form>
+
+<ul class="board-list">
+    {{#each state.boards}}
+        <li class="board-list-elt"><a href="#/board/{{this.id}}">{{this.name}}</a></li>
+    {{/each}}
+</ul>

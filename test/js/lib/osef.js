@@ -575,7 +575,7 @@ var Projection = function() {
     },
     project: function(event) {
       var eventHandler = event.name;
-      if (this.hasOwnProperty(eventHandler)) {
+      if (typeof this[eventHandler] === 'function') {
         this[eventHandler](event.payload);
       }
     },
