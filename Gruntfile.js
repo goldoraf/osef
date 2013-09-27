@@ -169,6 +169,10 @@ module.exports = function(grunt) {
             framework_code: {
                 files: ['src/**/*.js'],
                 tasks: ['build:framework', 'copy:tests_framework', 'copy:testapp_framework']
+            },
+            test_support_code: {
+                files: ['test/src/support/**/*.js'],
+                tasks: ['build:test_support_code']
             }
         }
     });

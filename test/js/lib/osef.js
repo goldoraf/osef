@@ -475,14 +475,16 @@
 (function(e){if("function"==typeof bootstrap)bootstrap("osef",e);else if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else if("undefined"!=typeof ses){if(!ses.ok())return;ses.makeOsef=e}else"undefined"!=typeof window?window.Osef=e():global.Osef=e()})(function(){var define,ses,bootstrap,module,exports;
 return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 "use strict";
+var Projection = require("./domain/projection");
 var __dependency1__ = require("./domain/aggregate");
 var Aggregate = __dependency1__.Aggregate;
 var AggregateState = __dependency1__.AggregateState;
 exports.Aggregate = Aggregate;
 exports.AggregateState = AggregateState;
+exports.Projection = Projection;
 
 
-},{"./domain/aggregate":2}],2:[function(require,module,exports){
+},{"./domain/aggregate":2,"./domain/projection":3}],2:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -550,6 +552,50 @@ exports.AggregateState = AggregateState;
 
 },{}],3:[function(require,module,exports){
 "use strict";
+var $__getDescriptors = function(object) {
+  var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
+  for (var i = 0; i < names.length; i++) {
+    var name = names[i];
+    descriptors[name] = Object.getOwnPropertyDescriptor(object, name);
+  }
+  return descriptors;
+}, $__createClassNoExtends = function(object, staticObject) {
+  var ctor = object.constructor;
+  Object.defineProperty(object, 'constructor', {enumerable: false});
+  ctor.prototype = object;
+  Object.defineProperties(ctor, $__getDescriptors(staticObject));
+  return ctor;
+};
+var Projection = function() {
+  'use strict';
+  var $Projection = ($__createClassNoExtends)({
+    constructor: function(store) {
+      this.store = store;
+      this.initialState = {};
+    },
+    project: function(event) {
+      var eventHandler = event.name;
+      if (this.hasOwnProperty(eventHandler)) {
+        this[eventHandler](event.payload);
+      }
+    },
+    addOrUpdate: function(key, mutateLambda) {
+      var that = this;
+      return this.store.exists(key).then(function(exists) {
+        if (exists) return that.store.get(key);
+        return when.resolve(that.initialState);
+      }).then(function(currentState) {
+        return that.store.put(key, mutateLambda(currentState));
+      });
+    }
+  }, {});
+  return $Projection;
+}();
+module.exports = Projection;
+
+
+},{}],4:[function(require,module,exports){
+"use strict";
 var ui = require("./ui");
 var domain = require("./domain");
 var storage = require("./storage");
@@ -560,7 +606,7 @@ exports.storage = storage;
 exports.wires = wires;
 
 
-},{"./domain":1,"./storage":4,"./ui":12,"./wires":18}],4:[function(require,module,exports){
+},{"./domain":1,"./storage":5,"./ui":13,"./wires":19}],5:[function(require,module,exports){
 "use strict";
 var LocalstorageEventStoreAdapter = require("./storage/event_store/localstorage");
 var __dependency1__ = require("./storage/key_value_store");
@@ -578,7 +624,7 @@ exports.LocalstorageKeyValueStore = LocalstorageKeyValueStore;
 exports.IndexedDbKeyValueStore = IndexedDbKeyValueStore;
 
 
-},{"./storage/event_store":5,"./storage/event_store/localstorage":7,"./storage/key_value_store":8}],5:[function(require,module,exports){
+},{"./storage/event_store":6,"./storage/event_store/localstorage":8,"./storage/key_value_store":9}],6:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -638,7 +684,7 @@ exports.EventStore = EventStore;
 exports.EventStream = EventStream;
 
 
-},{"../wires/event_bus":19}],6:[function(require,module,exports){
+},{"../wires/event_bus":20}],7:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -672,7 +718,7 @@ var AbstractEventStoreAdapter = function() {
 module.exports = AbstractEventStoreAdapter;
 
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 "use strict";
 var $__superDescriptor = function(proto, name) {
   if (!proto) throw new TypeError('super is null');
@@ -757,7 +803,7 @@ var LocalstorageEventStoreAdapter = function($__super) {
 module.exports = LocalstorageEventStoreAdapter;
 
 
-},{"./abstract":6}],8:[function(require,module,exports){
+},{"./abstract":7}],9:[function(require,module,exports){
 "use strict";
 var LocalstorageKeyValueStore = require("./key_value_store/localstorage");
 var IndexedDbKeyValueStore = require("./key_value_store/indexed_db");
@@ -769,7 +815,7 @@ exports.LocalstorageKeyValueStore = LocalstorageKeyValueStore;
 exports.IndexedDbKeyValueStore = IndexedDbKeyValueStore;
 
 
-},{"./key_value_store/indexed_db":10,"./key_value_store/localstorage":11}],9:[function(require,module,exports){
+},{"./key_value_store/indexed_db":11,"./key_value_store/localstorage":12}],10:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -825,7 +871,7 @@ var AbstractKeyValueStore = function() {
 module.exports = AbstractKeyValueStore;
 
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 "use strict";
 var $__superDescriptor = function(proto, name) {
   if (!proto) throw new TypeError('super is null');
@@ -973,7 +1019,7 @@ var IndexedDbKeyValueStore = function($__super) {
 module.exports = IndexedDbKeyValueStore;
 
 
-},{"./abstract":9}],11:[function(require,module,exports){
+},{"./abstract":10}],12:[function(require,module,exports){
 "use strict";
 var $__superDescriptor = function(proto, name) {
   if (!proto) throw new TypeError('super is null');
@@ -1039,7 +1085,7 @@ var LocalstorageKeyValueStore = function($__super) {
 module.exports = LocalstorageKeyValueStore;
 
 
-},{"./abstract":9}],12:[function(require,module,exports){
+},{"./abstract":10}],13:[function(require,module,exports){
 "use strict";
 var View = require("./ui/view");
 var ViewContext = require("./ui/view_context");
@@ -1053,7 +1099,7 @@ exports.ViewGroup = ViewGroup;
 exports.Layout = Layout;
 
 
-},{"./ui/layout":13,"./ui/state_manager":14,"./ui/view":15,"./ui/view_context":16,"./ui/view_group":17}],13:[function(require,module,exports){
+},{"./ui/layout":14,"./ui/state_manager":15,"./ui/view":16,"./ui/view_context":17,"./ui/view_group":18}],14:[function(require,module,exports){
 "use strict";
 var $__superDescriptor = function(proto, name) {
   if (!proto) throw new TypeError('super is null');
@@ -1113,7 +1159,7 @@ var Layout = function($__super) {
 module.exports = Layout;
 
 
-},{"./view":15,"./view_group":17}],14:[function(require,module,exports){
+},{"./view":16,"./view_group":18}],15:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -1187,7 +1233,7 @@ var StateManager = function() {
 module.exports = StateManager;
 
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -1273,7 +1319,7 @@ var View = function() {
 module.exports = View;
 
 
-},{"../wires/event_bus":19}],16:[function(require,module,exports){
+},{"../wires/event_bus":20}],17:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -1311,7 +1357,7 @@ var ViewContext = function() {
 module.exports = ViewContext;
 
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 "use strict";
 var $__getDescriptors = function(object) {
   var descriptors = {}, name, names = Object.getOwnPropertyNames(object);
@@ -1439,13 +1485,13 @@ var AnimationManager = function() {
 module.exports = ViewGroup;
 
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 "use strict";
 var EventBus = require("./wires/event_bus").EventBus;
 exports.EventBus = EventBus;
 
 
-},{"./wires/event_bus":19}],19:[function(require,module,exports){
+},{"./wires/event_bus":20}],20:[function(require,module,exports){
 "use strict";
 var EventBus = {
   messages: {},
@@ -1553,6 +1599,6 @@ var EventBus = {
 exports.EventBus = EventBus;
 
 
-},{}]},{},[3])(3)
+},{}]},{},[4])(4)
 });
 ;
