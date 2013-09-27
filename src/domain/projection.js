@@ -6,7 +6,7 @@ class Projection {
 
     project(event) {
         var eventHandler = event.name;
-        if (this.hasOwnProperty(eventHandler)) {
+        if (typeof this[eventHandler] === 'function') {
             this[eventHandler](event.payload);
         }
     }
