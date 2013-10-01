@@ -19,7 +19,6 @@ class View {
 
     setContext(context) {
         this.context = context;
-        this.context.onChange(this.contextChanged.bind(this));
     }
 
     contextChanged() {

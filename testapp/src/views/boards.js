@@ -1,4 +1,5 @@
 const { View } = Osef.ui;
+const { EventBus } = Osef.wires;
 
 class BoardsView extends View {
     constructor(context) {
@@ -9,9 +10,18 @@ class BoardsView extends View {
         };
     }
 
+    setContext(context) {
+        super(context);
+        var that = this;
+        EventBus.subscribe('projections.board-list.changed', function(msg, data) {
+            that.context = data;
+            that.contextChanged();
+        });
+    }
+
     createBoard(e) {
         e.preventDefault();
-        this.trigger('uiCreateBoard', { name: this.$('#create-board').name.value });
+        this.trigger('ui.createBoard', { name: this.$('#create-board').name.value });
     }
 }
 

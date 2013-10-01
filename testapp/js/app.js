@@ -9,7 +9,7 @@ var $__0 = Osef.ui, StateManager = $__0.StateManager, ViewContext = $__0.ViewCon
 var $__0 = Osef.storage, EventStore = $__0.EventStore, KeyValueStore = $__0.KeyValueStore, LocalstorageEventStoreAdapter = $__0.LocalstorageEventStoreAdapter;
 var EventBus = Osef.wires.EventBus;
 var eventStore = new EventStore(new LocalstorageEventStoreAdapter('testapp')), docStore = KeyValueStore.open('testapp'), boardListProj = new BoardListProjection(docStore);
-EventBus.subscribe('uiCreateBoard', function(msg, data) {
+EventBus.subscribe('ui.createBoard', function(msg, data) {
   var board = new Board();
   board.create(data.name);
   eventStore.appendToStream(board.getStreamId(), 0, board.changes);
@@ -21,8 +21,8 @@ var stateManager = new StateManager(), layout = new AppLayout();
 layout.render();
 stateManager.addState('boards', function(params) {
   var view = new BoardsView();
-  docStore.get('board-list').then(function(list) {
-    view.setContext(new ViewContext(list));
+  boardListProj.getOrCreate('board-list').then(function(list) {
+    view.setContext(list);
     layout.main.show(view);
   });
 });
@@ -215,6 +215,7 @@ var $__superDescriptor = function(proto, name) {
   return ctor;
 };
 var View = Osef.ui.View;
+var EventBus = Osef.wires.EventBus;
 var BoardsView = function($__super) {
   'use strict';
   var $__proto = $__getProtoParent($__super);
@@ -224,9 +225,17 @@ var BoardsView = function($__super) {
       this.templateName = 'boards';
       this.events = {'submit #create-board': 'createBoard'};
     },
+    setContext: function(context) {
+      $__superCall(this, $__proto, "setContext", [context]);
+      var that = this;
+      EventBus.subscribe('projections.board-list.changed', function(msg, data) {
+        that.context = data;
+        that.contextChanged();
+      });
+    },
     createBoard: function(e) {
       e.preventDefault();
-      this.trigger('uiCreateBoard', {name: this.$('#create-board').name.value});
+      this.trigger('ui.createBoard', {name: this.$('#create-board').name.value});
     }
   }, {}, $__proto, $__super, true);
   return $BoardsView;

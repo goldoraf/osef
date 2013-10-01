@@ -13,13 +13,13 @@ var eventStore = new EventStore(new LocalstorageEventStoreAdapter('testapp')),
     docStore = KeyValueStore.open('testapp'),
     boardListProj = new BoardListProjection(docStore);
 
-EventBus.subscribe('uiCreateBoard', function(msg, data) {
+EventBus.subscribe('ui.createBoard', function(msg, data) {
     var board = new Board();
     board.create(data.name);
     eventStore.appendToStream(board.getStreamId(), 0, board.changes);
 });
 
-/*EventBus.subscribe('uiRenameBoard', function(data) {
+/*EventBus.subscribe('uiRenameBoard', function(msg, data) {
     var board = new Board(data.id);
     var eventStream = eventStore.loadEventStream(board.getStreamId());
     board.loadFromHistory(eventStream.events);
@@ -38,9 +38,9 @@ layout.render();
 
 stateManager.addState('boards', function(params) {
     var view = new BoardsView();
-    docStore.get('board-list')
+    boardListProj.getOrCreate('board-list')
         .then(function(list) {
-            view.setContext(new ViewContext(list));
+            view.setContext(list);
             layout.main.show(view);
         });
 });
