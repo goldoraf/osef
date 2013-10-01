@@ -521,6 +521,11 @@ var Aggregate = function() {
         payload: data || {}
       };
     },
+    loadFromHistory: function(events) {
+      events.forEach(function(e) {
+        this.state.mutate(e);
+      }, this);
+    },
     getStreamId: function() {
       return this.getType().toLowerCase() + '-' + this.identifier;
     },
@@ -535,7 +540,10 @@ var AggregateState = function() {
   var $AggregateState = ($__createClassNoExtends)({
     constructor: function() {},
     mutate: function(event) {
-      this[event.name](event.payload);
+      var eventHandler = event.name;
+      if (typeof this[eventHandler] === 'function') {
+        this[eventHandler](event.payload);
+      }
     }
   }, {});
   return $AggregateState;
@@ -566,6 +574,7 @@ var $__getDescriptors = function(object) {
   Object.defineProperties(ctor, $__getDescriptors(staticObject));
   return ctor;
 };
+var EventBus = require("../wires/event_bus").EventBus;
 var Projection = function() {
   'use strict';
   var $Projection = ($__createClassNoExtends)({
@@ -581,11 +590,26 @@ var Projection = function() {
     },
     addOrUpdate: function(key, mutateLambda) {
       var that = this;
+      return this.getOrCreate(key).then(function(currentState) {
+        return that.update(key, mutateLambda(currentState));
+      });
+    },
+    getOrCreate: function(key) {
+      var that = this;
       return this.store.exists(key).then(function(exists) {
         if (exists) return that.store.get(key);
-        return when.resolve(that.initialState);
-      }).then(function(currentState) {
-        return that.store.put(key, mutateLambda(currentState));
+        return that.create(key);
+      });
+    },
+    create: function(key) {
+      var state = this.initialState;
+      return this.store.put(key, state).then(function() {
+        return when.resolve(state);
+      });
+    },
+    update: function(key, newState) {
+      return this.store.put(key, newState).then(function() {
+        EventBus.publish('projections.' + key + '.changed', newState);
       });
     }
   }, {});
@@ -594,7 +618,7 @@ var Projection = function() {
 module.exports = Projection;
 
 
-},{}],4:[function(require,module,exports){
+},{"../wires/event_bus":20}],4:[function(require,module,exports){
 "use strict";
 var ui = require("./ui");
 var domain = require("./domain");
@@ -1267,7 +1291,6 @@ var View = function() {
     },
     setContext: function(context) {
       this.context = context;
-      this.context.onChange(this.contextChanged.bind(this));
     },
     contextChanged: function() {
       this.rerender();

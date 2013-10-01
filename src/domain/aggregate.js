@@ -20,6 +20,12 @@ class Aggregate {
         };
     }
 
+    loadFromHistory(events) {
+        events.forEach(function(e) {
+            this.state.mutate(e);
+        }, this);
+    }
+
     getStreamId() {
         return this.getType().toLowerCase() + '-' + this.identifier;
     }
@@ -31,7 +37,10 @@ class Aggregate {
 
 class AggregateState {
     mutate(event) {
-        this[event.name](event.payload);
+        var eventHandler = event.name;
+        if (typeof this[eventHandler] === 'function') {
+            this[eventHandler](event.payload);
+        }
     }
 }
 

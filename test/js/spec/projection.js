@@ -1,4 +1,5 @@
-var store = Osef.storage.KeyValueStore.open('test');
+var store = Osef.storage.KeyValueStore.open('test'),
+    EventBus = Osef.wires.EventBus;
 
 describe('Projection', function() {
     var assert = chai.assert;
@@ -85,6 +86,23 @@ describe('Projection', function() {
                     assert.deepEqual(expectedState, value);
                     done();
                 });
+        });
+
+        it('should publish a change event if this is an update', function(done) {
+            var simulatedState = { foo: 'baw' },
+                newState = { humpty: 'dumpty' };
+
+            EventBus.subscribe('projections.'+projKey+'.changed', function(msg, data) {
+                assert.deepEqual(newState, data);
+                done();
             });
+
+            store.put(projKey, simulatedState)
+                .then(function() {
+                    return proj.addOrUpdate(projKey, function(s) {
+                        return newState;
+                    });
+                });
+        });
     });
 });
