@@ -588,11 +588,23 @@ var Projection = function() {
         this[eventHandler](event.payload);
       }
     },
+    add: function(key, mutateLambda) {
+      return this.store.put(key, mutateLambda(this.initialState));
+    },
+    update: function(key, mutateLambda) {
+      var that = this;
+      return this.get(key).then(function(currentState) {
+        return that.save(key, mutateLambda(currentState));
+      });
+    },
     addOrUpdate: function(key, mutateLambda) {
       var that = this;
       return this.getOrCreate(key).then(function(currentState) {
-        return that.update(key, mutateLambda(currentState));
+        return that.save(key, mutateLambda(currentState));
       });
+    },
+    get: function(key) {
+      return this.store.get(key);
     },
     getOrCreate: function(key) {
       var that = this;
@@ -607,7 +619,7 @@ var Projection = function() {
         return when.resolve(state);
       });
     },
-    update: function(key, newState) {
+    save: function(key, newState) {
       return this.store.put(key, newState).then(function() {
         EventBus.publish('projections.' + key + '.changed', newState);
       });
@@ -1322,8 +1334,10 @@ var View = function() {
     },
     attachEvents: function() {
       for (var key in this.events) {
-        var match = key.match(eventSplitter), eventName = match[1], selector = match[2], fn = this.events[key];
-        this.$(selector).addEventListener(eventName, this[fn].bind(this), false);
+        var match = key.match(eventSplitter), eventName = match[1], selector = match[2], fn = this.events[key], elt = this.$(selector);
+        if (elt) {
+          elt.addEventListener(eventName, this[fn].bind(this), false);
+        }
       }
     },
     detachEvents: function() {},

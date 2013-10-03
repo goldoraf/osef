@@ -13,11 +13,26 @@ class Projection {
         }
     }
 
+    add(key, mutateLambda) {
+        return this.store.put(key, mutateLambda(this.initialState));
+    }
+
+    update(key, mutateLambda) {
+        var that = this;
+        return this.get(key).then(function(currentState) {
+            return that.save(key, mutateLambda(currentState));
+        });
+    }
+
     addOrUpdate(key, mutateLambda) {
         var that = this;
         return this.getOrCreate(key).then(function(currentState) {
-            return that.update(key, mutateLambda(currentState));
+            return that.save(key, mutateLambda(currentState));
         });
+    }
+
+    get(key) {
+        return this.store.get(key);
     }
 
     getOrCreate(key) {
@@ -35,7 +50,7 @@ class Projection {
         });
     }
 
-    update(key, newState) {
+    save(key, newState) {
         return this.store.put(key, newState).then(function() {
             EventBus.publish('projections.' + key + '.changed', newState);
         });
