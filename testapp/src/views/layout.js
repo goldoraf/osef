@@ -5,9 +5,9 @@ class AppLayout extends Layout {
         super();
         this.templateName = 'layout';
         this.zones = {
-            launchbar: '#launchbar',
+            header: 'header',
             main: '#main',
-            footer: '#footer'
+            footer: 'footer'
         };
     }
 }

@@ -1,0 +1,36 @@
+<section>
+    <aside>
+        <h3>Add a list</h3>
+        <form class="create-list">
+            <textarea name="title"></textarea>
+            <input type="submit" value="Add" />
+        </form>
+        <h3>Activity</h3>
+    </aside>
+    <section class="board-view">
+        <header>
+            <h2>{{name}}</h2>
+        </header>
+        <section class="grid">
+            <div class="grid{{cardLists.length}}">
+                {{#each cardLists}}
+                    <div class="card-list">
+                        <h4>{{this.title}}</h4>
+                        {{#each this.cards}}
+                            <div class="card">
+                                {{this.title}}
+                            </div>
+                        {{/each}}
+                        <div class="card-composer">
+                            <form class="create-card">
+                                <input type="hidden" name="listId" value="{{this.id}}" />
+                                <textarea name="title"></textarea>
+                                <input type="submit" value="Add" />
+                            </form>
+                        </div>
+                    </div>
+                {{/each}}
+            </div>
+        </section>
+    </section>
+</section>

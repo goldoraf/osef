@@ -1,0 +1,36 @@
+header#launchbar {
+    color: #999;
+    background-color: #505759;
+    height: 30px;
+    border-bottom: 1px solid #343d41;
+    box-shadow: 0px 1px 3px rgba(0,0,0,.4);
+}
+
+aside {
+    background: #343d41;
+    color: #000;
+    position: fixed;
+    top: 30px;
+    bottom: 0;
+    width: 240px;
+}
+
+section.board-view {
+    position: relative;
+    margin-left: 240px;
+}
+
+section.board-view header {
+    background: #f0f0f0;
+}
+
+div.card {
+    background-color: #e9e9a1;
+    border: 1px solid #b9b9b9;
+    border-bottom-color: #939393;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-bottom: 4px;
+    min-height: 18px;
+    padding: 6px 8px 1px;
+}
