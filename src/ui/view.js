@@ -60,9 +60,12 @@ class View {
         for (var key in this.events) {
             var match = key.match(eventSplitter),
                 eventName = match[1], selector = match[2],
-                fn = this.events[key];
+                fn = this.events[key],
+                elt = this.$(selector);
 
-            this.$(selector).addEventListener(eventName, this[fn].bind(this), false);
+            if (elt) {
+                elt.addEventListener(eventName, this[fn].bind(this), false);
+            }
         }
     }
 
