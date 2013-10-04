@@ -1334,9 +1334,9 @@ var View = function() {
     },
     attachEvents: function() {
       for (var key in this.events) {
-        var match = key.match(eventSplitter), eventName = match[1], selector = match[2], fn = this.events[key], elt = this.$(selector);
-        if (elt) {
-          elt.addEventListener(eventName, this[fn].bind(this), false);
+        var match = key.match(eventSplitter), eventName = match[1], selector = match[2], fn = this.events[key], elts = this.$$(selector), i, length = elts.length;
+        for (i = 0; i < length; ++i) {
+          elts[i].addEventListener(eventName, this[fn].bind(this), false);
         }
       }
     },
@@ -1346,6 +1346,9 @@ var View = function() {
     },
     $: function(selector) {
       return this.element.querySelector(selector);
+    },
+    $$: function(selector) {
+      return this.element.querySelectorAll(selector);
     },
     getTemplateFromName: function() {
       return JST[this.templateName];

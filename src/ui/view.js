@@ -61,10 +61,11 @@ class View {
             var match = key.match(eventSplitter),
                 eventName = match[1], selector = match[2],
                 fn = this.events[key],
-                elt = this.$(selector);
+                elts = this.$$(selector),
+                i, length = elts.length;
 
-            if (elt) {
-                elt.addEventListener(eventName, this[fn].bind(this), false);
+            for (i = 0; i < length; ++i) {
+                elts[i].addEventListener(eventName, this[fn].bind(this), false);
             }
         }
     }
@@ -79,6 +80,10 @@ class View {
 
     $(selector) {
         return this.element.querySelector(selector);
+    }
+
+    $$(selector) {
+        return this.element.querySelectorAll(selector);
     }
 
     getTemplateFromName() {
